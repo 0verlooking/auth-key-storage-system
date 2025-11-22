@@ -148,7 +148,7 @@ public class AuthServiceImpl implements AuthService {
             log.warn("Failed login attempt for: {}", request.getUsernameOrEmail());
 
             // Increment failed login attempts
-            userRepository.findByUsernameOrEmail(request.getUsernameOrEmail(), request.getUsernameOrEmail())
+            userRepository.findByUsernameOrEmail(request.getUsernameOrEmail())
                     .ifPresent(user -> {
                         user.incrementFailedLoginAttempts();
                         userRepository.save(user);
