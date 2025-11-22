@@ -99,9 +99,9 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(
             @Valid @RequestBody LoginRequest request
     ) {
-        log.info("Login attempt for user: {}", request.getUsername());
+        log.info("Login attempt for user: {}", request.getUsernameOrEmail());
         AuthResponse response = authService.login(request);
-        log.info("User logged in successfully: {}", request.getUsername());
+        log.info("User logged in successfully: {}", request.getUsernameOrEmail());
         return ResponseEntity.ok(response);
     }
 

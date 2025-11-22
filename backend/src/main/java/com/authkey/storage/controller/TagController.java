@@ -203,7 +203,6 @@ public class TagController {
         CreateTagRequest createRequest = CreateTagRequest.builder()
                 .name(request.getName())
                 .color(request.getColor())
-                .description(request.getDescription())
                 .build();
 
         TagResponse response = tagService.updateTag(userId, id, createRequest);
