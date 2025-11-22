@@ -1,0 +1,204 @@
+@startuml deployment
+!theme plain
+title Deployment Діаграма - Docker контейнери
+
+skinparam componentStyle rectangle
+
+actor "Користувач" as User
+actor "Адміністратор" as Admin
+
+cloud "Інтернет" {
+}
+
+node "Docker Host" {
+  
+  component "Docker Network: auth-key-network" as network {
+    
+    rectangle "Frontend Container\n(React + Vite)" as frontend {
+      component "Nginx Server" as nginx
+      component "React App" as react
+      component "Crypto.js\n(AES-256-GCM)" as crypto
+      database "LocalStorage\n(Master Password)" as localstorage
+      
+      nginx -- react
+      react -- crypto
+      react -- localstorage
+      
+      note bottom of crypto
+        **Zero-Knowledge шифрування**
+        - AES-256-GCM
+        - PBKDF2 key derivation
+        - Client-side only
+      end note
+    }
+    
+    rectangle "Backend Container\n(Spring Boot)" as backend {
+      component "Tomcat Server" as tomcat
+      component "Spring Security\n+ JWT" as security
+      component "REST Controllers" as controllers
+      component "Services\n(Business Logic)" as services
+      component "Repositories\n(JPA/Hibernate)" as repositories
+      
+      tomcat -- security
+      security -- controllers
+      controllers -- services
+      services -- repositories
+      
+      note bottom of security
+        **Безпека:**
+        - JWT Authentication
+        - BCrypt passwords
+        - Role-based access
+        - CORS config
+      end note
+    }
+    
+    rectangle "PostgreSQL Container\n(Database)" as postgres {
+      database "PostgreSQL 15" as db {
+        frame "users" as users_table
+        frame "auth_keys" as keys_table
+        frame "folders" as folders_table
+        frame "tags" as tags_table
+        frame "share_links" as share_table
+        frame "audit_logs" as audit_table
+      }
+      
+      note bottom of db
+        **Persistence:**
+        - Volume mounted
+        - Auto backup
+        - Migration via Flyway
+      end note
+    }
+    
+    rectangle "Redis Container\n(Cache)" as redis {
+      database "Redis 7" as cache {
+        frame "Session tokens"
+        frame "Refresh tokens"
+        frame "Rate limiting"
+      }
+      
+      note bottom of cache
+        **Caching:**
+        - JWT tokens
+        - Session data
+        - Rate limits
+      end note
+    }
+    
+    rectangle "pgAdmin Container\n(DB Management)" as pgadmin {
+      component "pgAdmin UI" as pgadmin_ui
+      
+      note bottom of pgadmin_ui
+        **Dev Tool:**
+        - Database admin
+        - Query editor
+        - Monitoring
+      end note
+    }
+  }
+  
+  storage "Docker Volumes" as volumes {
+    folder "postgres-data" as pg_vol
+    folder "redis-data" as redis_vol
+    folder "backend-logs" as logs_vol
+  }
+}
+
+' External connections
+User --> frontend : "HTTPS:443\n(Production)\nHTTP:3000 (Dev)"
+Admin --> pgadmin : "HTTP:5050"
+
+' Internal connections
+frontend --> backend : "REST API\nHTTP:8080"
+backend --> postgres : "JDBC\nPostgreSQL:5432"
+backend --> redis : "Redis Protocol\nRedis:6379"
+pgadmin --> postgres : "PostgreSQL:5432"
+
+' Volume mounts
+postgres --> pg_vol : "Mount"
+redis --> redis_vol : "Mount"
+backend --> logs_vol : "Mount"
+
+' Environment configs
+note right of frontend
+  **Env Variables:**
+  - VITE_API_URL
+  - VITE_APP_NAME
+  - VITE_ENABLE_ANALYTICS
+end note
+
+note right of backend
+  **Env Variables:**
+  - SPRING_DATASOURCE_URL
+  - SPRING_DATASOURCE_USERNAME
+  - SPRING_DATASOURCE_PASSWORD
+  - SPRING_REDIS_HOST
+  - JWT_SECRET
+  - JWT_EXPIRATION
+  - CORS_ALLOWED_ORIGINS
+end note
+
+note right of postgres
+  **Env Variables:**
+  - POSTGRES_DB=authkey_db
+  - POSTGRES_USER=authkey_user
+  - POSTGRES_PASSWORD=<secret>
+  - PGDATA=/var/lib/postgresql/data
+end note
+
+note right of redis
+  **Env Variables:**
+  - REDIS_PASSWORD=<secret>
+  - REDIS_MAXMEMORY=256mb
+  - REDIS_POLICY=allkeys-lru
+end note
+
+' Deployment flow
+rectangle "CI/CD Pipeline" as cicd {
+  component "GitHub Actions" as github
+  component "Build & Test" as build
+  component "Docker Build" as docker_build
+  component "Deploy" as deploy
+  
+  github --> build
+  build --> docker_build
+  docker_build --> deploy
+}
+
+cicd ..> backend : "Deploy"
+cicd ..> frontend : "Deploy"
+
+note bottom of cicd
+  **Deployment Process:**
+  1. Push to main branch
+  2. Run tests
+  3. Build Docker images
+  4. Push to registry
+  5. Deploy to server
+  6. Health check
+end note
+
+' Production topology
+rectangle "Production (Future)" as production {
+  component "Load Balancer\n(Nginx)" as lb
+  component "Frontend x3\n(Replicas)" as fe_replicas
+  component "Backend x3\n(Replicas)" as be_replicas
+  component "PostgreSQL\n(Master-Slave)" as db_replicas
+  component "Redis Cluster" as redis_cluster
+  
+  lb --> fe_replicas
+  fe_replicas --> be_replicas
+  be_replicas --> db_replicas
+  be_replicas --> redis_cluster
+  
+  note bottom of production
+    **High Availability:**
+    - Multiple replicas
+    - Auto-scaling
+    - Health monitoring
+    - Backup & recovery
+  end note
+}
+
+@enduml

@@ -1,0 +1,208 @@
+@startuml sequence-create-key
+!theme cerulean-outline
+title Create Authentication Key with Client-Side Encryption
+
+actor User
+participant "React\nFrontend" as Frontend
+participant "CryptoService\n(Client)" as Crypto
+participant "AuthKeyController" as Controller
+participant "JwtAuthFilter" as JwtFilter
+participant "AuthKeyService" as Service
+participant "AuditLogService" as Audit
+participant "PostgreSQL\nDatabase" as DB
+
+User -> Frontend: Click "Add New Key"
+activate Frontend
+Frontend --> User: Show Create Key Form
+deactivate Frontend
+
+User -> Frontend: Fill form:\n- Title\n- Type (Password/API Key/etc)\n- Username/Email\n- Value (password/key)\n- URL, Notes, Tags, Folder\n- Master Password
+activate Frontend
+
+Frontend -> Frontend: Validate input
+note right
+  Validation:
+  - Title required
+  - Type required
+  - Value required (to encrypt)
+  - Master password required
+end note
+
+== Client-Side Encryption ==
+
+Frontend -> Crypto: deriveKey(masterPassword, salt)
+activate Crypto
+note right of Crypto
+  Key Derivation with PBKDF2:
+  - Algorithm: PBKDF2-SHA256
+  - Iterations: 100,000
+  - Salt: 32 bytes random
+  - Output: 256-bit key
+end note
+
+Crypto -> Crypto: Generate random salt\n(32 bytes)
+Crypto -> Crypto: PBKDF2(\n  password: masterPassword,\n  salt: salt,\n  iterations: 100000,\n  keyLen: 32\n)
+Crypto --> Frontend: derivedKey (256 bits)
+deactivate Crypto
+
+Frontend -> Crypto: encrypt(value, derivedKey)
+activate Crypto
+note right of Crypto
+  AES-256-GCM Encryption:
+  - Algorithm: AES-GCM
+  - Key size: 256 bits
+  - IV: 12 bytes random
+  - Tag: 128 bits
+  - Output: encryptedData + authTag
+end note
+
+Crypto -> Crypto: Generate random IV\n(12 bytes for GCM)
+Crypto -> Crypto: AES-256-GCM.encrypt(\n  plaintext: value,\n  key: derivedKey,\n  iv: iv,\n  additionalData: title\n)
+Crypto --> Frontend: {\n  encryptedValue: base64(ciphertext + tag),\n  iv: base64(iv),\n  salt: base64(salt)\n}
+deactivate Crypto
+
+note right of Frontend
+  Zero-Knowledge Architecture:
+  - Encryption happens ONLY on client
+  - Server NEVER sees plaintext
+  - Master password NEVER sent to server
+  - Each key has unique IV and salt
+end note
+
+Frontend -> Frontend: Calculate password strength\n(if type is password)
+
+Frontend -> Frontend: Build request payload:\n{\n  title, type, username, email, url,\n  encryptedValue, encryptionIv, encryptionSalt,\n  notes, isFavorite, expiresAt,\n  passwordStrength, folderId, tagIds\n}
+
+== Server-Side Processing ==
+
+Frontend -> Controller: POST /api/v1/auth-keys\nAuthorization: Bearer {accessToken}\nBody: CreateAuthKeyRequest
+activate Controller
+
+Controller -> JwtFilter: Validate JWT token
+activate JwtFilter
+JwtFilter -> JwtFilter: Parse and verify JWT\n- Check signature\n- Check expiration\n- Extract userId
+JwtFilter --> Controller: Authentication(userId)
+deactivate JwtFilter
+
+alt Token invalid or expired
+    Controller --> Frontend: 401 Unauthorized
+    Frontend --> User: "Session expired, please login"
+else Token valid
+
+    Controller -> Service: createAuthKey(userId, request)
+    activate Service
+
+    Service -> Service: Validate request
+    note right
+      - Check required fields
+      - Verify folder belongs to user
+      - Verify tags belong to user
+    end note
+
+    alt Folder doesn't belong to user
+        Service --> Controller: ResourceNotFoundException
+        Controller --> Frontend: 404 Not Found
+    end
+
+    Service -> Service: Create AuthKey entity:\n- user = userId\n- title = request.title\n- encryptedValue = request.encryptedValue\n- encryptionIv = request.iv\n- encryptionSalt = request.salt\n- folder, tags, etc.
+
+    Service -> DB: INSERT INTO auth_keys VALUES (...)
+    activate DB
+    DB --> Service: AuthKey with ID
+    deactivate DB
+
+    alt Tags provided
+        Service -> DB: INSERT INTO auth_key_tags (auth_key_id, tag_id)\nVALUES (?, ?)
+        activate DB
+        DB --> Service: Success
+        deactivate DB
+    end
+
+    Service -> Audit: logKeyCreation(userId, keyId, ipAddress)
+    activate Audit
+    Audit -> DB: INSERT INTO audit_logs\n(user_id, action, resource_type, resource_id,\n ip_address, timestamp, ...)
+    activate DB
+    note right
+      Audit Log Entry:
+      - action: "AUTH_KEY_CREATED"
+      - resourceType: "AUTH_KEY"
+      - resourceId: keyId
+      - details: {title, type}
+      - ipAddress: request.ip
+      - userAgent: request.userAgent
+    end note
+    DB --> Audit: Success
+    deactivate DB
+    deactivate Audit
+
+    Service -> Service: Convert to AuthKeyResponse\n(exclude sensitive data)
+
+    Service --> Controller: AuthKeyResponse
+    deactivate Service
+
+    Controller --> Frontend: 201 CREATED\nAuthKeyResponse
+    deactivate Controller
+
+end
+
+Frontend -> Frontend: Clear form\nClear master password from memory
+
+Frontend --> User: Show success notification:\n"Authentication key created successfully"
+deactivate Frontend
+
+== Later: Retrieve and Decrypt ==
+
+User -> Frontend: Click on auth key to view
+activate Frontend
+
+Frontend -> Controller: GET /api/v1/auth-keys/{id}\nAuthorization: Bearer {accessToken}
+activate Controller
+
+Controller -> Service: getAuthKeyById(userId, id)
+activate Service
+
+Service -> DB: SELECT * FROM auth_keys\nWHERE id = ? AND user_id = ?
+activate DB
+DB --> Service: AuthKey (with encrypted data)
+deactivate DB
+
+Service -> Service: Increment access count
+Service -> DB: UPDATE auth_keys SET\naccess_count = access_count + 1,\nlast_accessed_at = now()
+activate DB
+DB --> Service: Success
+deactivate DB
+
+Service --> Controller: AuthKeyResponse\n(still encrypted)
+deactivate Service
+
+Controller --> Frontend: 200 OK\nAuthKeyResponse
+deactivate Controller
+
+Frontend --> User: Prompt for master password
+deactivate Frontend
+
+User -> Frontend: Enter master password
+activate Frontend
+
+Frontend -> Crypto: deriveKey(masterPassword, storedSalt)
+activate Crypto
+Crypto -> Crypto: PBKDF2 with stored salt
+Crypto --> Frontend: derivedKey
+deactivate Crypto
+
+Frontend -> Crypto: decrypt(encryptedValue, derivedKey, storedIv)
+activate Crypto
+Crypto -> Crypto: AES-256-GCM.decrypt(\n  ciphertext: encryptedValue,\n  key: derivedKey,\n  iv: storedIv,\n  additionalData: title\n)
+
+alt Decryption successful
+    Crypto --> Frontend: plaintext value
+    Frontend --> User: Display decrypted password
+else Decryption failed (wrong password)
+    Crypto --> Frontend: DecryptionError
+    Frontend --> User: "Invalid master password"
+end
+
+deactivate Crypto
+deactivate Frontend
+
+@enduml

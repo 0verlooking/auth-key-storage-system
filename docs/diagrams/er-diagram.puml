@@ -1,0 +1,244 @@
+@startuml er-diagram
+!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define primary_key(x) <b><color:#b8861b><&key></color> x</b>
+!define foreign_key(x) <color:#aaaaaa><&key></color> x
+!define column(x) <color:#efefef><&media-record></color> x
+!define index(x) <color:#00ff00><&list></color> x
+
+skinparam class {
+    BackgroundColor LightYellow
+    ArrowColor Black
+    BorderColor Black
+    FontSize 11
+}
+
+entity "users" as users {
+    primary_key(id) : BIGINT <<PK>>
+    --
+    column(username) : VARCHAR(50) <<UNIQUE, NOT NULL>>
+    column(email) : VARCHAR(100) <<UNIQUE, NOT NULL>>
+    column(password) : VARCHAR(255) <<NOT NULL>>
+    column(first_name) : VARCHAR(50)
+    column(last_name) : VARCHAR(50)
+    column(role) : VARCHAR(20) <<NOT NULL, DEFAULT 'USER'>>
+    --
+    column(is_email_verified) : BOOLEAN <<DEFAULT FALSE>>
+    column(email_verification_token) : VARCHAR(255)
+    column(email_verification_token_expires_at) : TIMESTAMP
+    --
+    column(password_reset_token) : VARCHAR(255)
+    column(password_reset_token_expires_at) : TIMESTAMP
+    --
+    column(is_two_factor_enabled) : BOOLEAN <<DEFAULT FALSE>>
+    column(two_factor_secret) : VARCHAR(255)
+    --
+    column(account_locked) : BOOLEAN <<DEFAULT FALSE>>
+    column(failed_login_attempts) : INTEGER <<DEFAULT 0>>
+    column(last_login_at) : TIMESTAMP
+    column(last_login_ip) : VARCHAR(45)
+    --
+    column(created_at) : TIMESTAMP <<NOT NULL>>
+    column(updated_at) : TIMESTAMP
+    column(deleted_at) : TIMESTAMP
+    column(is_deleted) : BOOLEAN <<DEFAULT FALSE>>
+    --
+    index(idx_user_email) : (email)
+    index(idx_user_username) : (username)
+}
+
+entity "auth_keys" as auth_keys {
+    primary_key(id) : BIGINT <<PK>>
+    foreign_key(user_id) : BIGINT <<FK, NOT NULL>>
+    foreign_key(folder_id) : BIGINT <<FK>>
+    --
+    column(title) : VARCHAR(200) <<NOT NULL>>
+    column(description) : VARCHAR(500)
+    column(key_type) : VARCHAR(50) <<NOT NULL>>
+    --
+    column(username) : VARCHAR(255)
+    column(email) : VARCHAR(255)
+    column(url) : VARCHAR(500)
+    --
+    column(encrypted_value) : TEXT <<NOT NULL>>
+    column(encryption_iv) : VARCHAR(255)
+    column(encryption_salt) : VARCHAR(255)
+    --
+    column(notes) : VARCHAR(1000)
+    column(is_favorite) : BOOLEAN <<DEFAULT FALSE>>
+    column(last_accessed_at) : TIMESTAMP
+    column(access_count) : INTEGER <<DEFAULT 0>>
+    column(expires_at) : TIMESTAMP
+    column(password_strength) : INTEGER
+    --
+    column(created_at) : TIMESTAMP <<NOT NULL>>
+    column(updated_at) : TIMESTAMP
+    column(deleted_at) : TIMESTAMP
+    column(is_deleted) : BOOLEAN <<DEFAULT FALSE>>
+    --
+    index(idx_authkey_user) : (user_id)
+    index(idx_authkey_folder) : (folder_id)
+    index(idx_authkey_type) : (key_type)
+}
+
+entity "folders" as folders {
+    primary_key(id) : BIGINT <<PK>>
+    foreign_key(user_id) : BIGINT <<FK, NOT NULL>>
+    foreign_key(parent_folder_id) : BIGINT <<FK>>
+    --
+    column(name) : VARCHAR(100) <<NOT NULL>>
+    column(description) : VARCHAR(500)
+    column(color) : VARCHAR(7)
+    column(icon) : VARCHAR(50)
+    --
+    column(created_at) : TIMESTAMP <<NOT NULL>>
+    column(updated_at) : TIMESTAMP
+    column(deleted_at) : TIMESTAMP
+    column(is_deleted) : BOOLEAN <<DEFAULT FALSE>>
+    --
+    index(idx_folder_user) : (user_id)
+    index(idx_folder_parent) : (parent_folder_id)
+}
+
+entity "tags" as tags {
+    primary_key(id) : BIGINT <<PK>>
+    foreign_key(user_id) : BIGINT <<FK, NOT NULL>>
+    --
+    column(name) : VARCHAR(50) <<NOT NULL>>
+    column(color) : VARCHAR(7)
+    --
+    column(created_at) : TIMESTAMP <<NOT NULL>>
+    column(updated_at) : TIMESTAMP
+    column(deleted_at) : TIMESTAMP
+    column(is_deleted) : BOOLEAN <<DEFAULT FALSE>>
+    --
+    index(idx_tag_user) : (user_id)
+    index(idx_tag_name) : (name)
+}
+
+entity "auth_key_tags" as auth_key_tags {
+    foreign_key(auth_key_id) : BIGINT <<FK, PK>>
+    foreign_key(tag_id) : BIGINT <<FK, PK>>
+    --
+    note: Junction table for many-to-many
+    note: relationship between auth_keys and tags
+}
+
+entity "share_links" as share_links {
+    primary_key(id) : BIGINT <<PK>>
+    foreign_key(auth_key_id) : BIGINT <<FK, NOT NULL>>
+    --
+    column(share_token) : VARCHAR(255) <<UNIQUE, NOT NULL>>
+    column(encrypted_key) : TEXT <<NOT NULL>>
+    column(access_password_hash) : VARCHAR(255)
+    --
+    column(max_access_count) : INTEGER
+    column(current_access_count) : INTEGER <<DEFAULT 0>>
+    column(expires_at) : TIMESTAMP
+    --
+    column(is_active) : BOOLEAN <<DEFAULT TRUE>>
+    column(allow_download) : BOOLEAN <<DEFAULT FALSE>>
+    --
+    column(created_at) : TIMESTAMP <<NOT NULL>>
+    column(updated_at) : TIMESTAMP
+    column(deleted_at) : TIMESTAMP
+    column(is_deleted) : BOOLEAN <<DEFAULT FALSE>>
+    --
+    index(idx_sharelink_token) : (share_token)
+    index(idx_sharelink_authkey) : (auth_key_id)
+}
+
+entity "audit_logs" as audit_logs {
+    primary_key(id) : BIGINT <<PK>>
+    foreign_key(user_id) : BIGINT <<FK, NOT NULL>>
+    --
+    column(action) : VARCHAR(100) <<NOT NULL>>
+    column(resource_type) : VARCHAR(50)
+    column(resource_id) : BIGINT
+    column(details) : TEXT
+    --
+    column(ip_address) : VARCHAR(45)
+    column(user_agent) : VARCHAR(500)
+    column(timestamp) : TIMESTAMP <<NOT NULL>>
+    --
+    column(is_successful) : BOOLEAN <<DEFAULT TRUE>>
+    column(error_message) : VARCHAR(1000)
+    --
+    column(created_at) : TIMESTAMP <<NOT NULL>>
+    column(updated_at) : TIMESTAMP
+    column(deleted_at) : TIMESTAMP
+    column(is_deleted) : BOOLEAN <<DEFAULT FALSE>>
+    --
+    index(idx_audit_user) : (user_id)
+    index(idx_audit_action) : (action)
+    index(idx_audit_timestamp) : (timestamp)
+}
+
+' Relationships
+users ||--o{ auth_keys : "owns"
+users ||--o{ folders : "creates"
+users ||--o{ tags : "creates"
+users ||--o{ audit_logs : "generates"
+
+folders ||--o{ auth_keys : "contains"
+folders ||--o{ folders : "has subfolders"
+
+auth_keys ||--o{ share_links : "can be shared via"
+auth_keys }o--o{ tags : "categorized by"
+
+auth_key_tags }o--|| auth_keys
+auth_key_tags }o--|| tags
+
+' Notes
+note right of users
+  **UserDetails Implementation**
+  - Spring Security integration
+  - BCrypt password encryption
+  - Account locking after 5 failed attempts
+  - Email verification workflow
+  - Password reset functionality
+  - 2FA support (future)
+end note
+
+note right of auth_keys
+  **Zero-Knowledge Encryption**
+  - Encrypted on client-side
+  - AES-256-GCM algorithm
+  - Master password derived with PBKDF2
+  - Server never sees plaintext
+  - Each key has unique IV and salt
+end note
+
+note bottom of folders
+  **Composite Pattern**
+  - Hierarchical folder structure
+  - Self-referencing relationship
+  - Supports nested subfolders
+  - Used for organizing auth keys
+end note
+
+note bottom of tags
+  **Many-to-Many Relationship**
+  - Multiple tags per auth key
+  - Same tag used for multiple keys
+  - Flexible categorization
+end note
+
+note left of share_links
+  **Secure Temporary Sharing**
+  - Time-limited access
+  - Access count limitation
+  - Optional password protection
+  - UUID-based token
+  - Auto-deactivation
+end note
+
+note left of audit_logs
+  **Observer Pattern**
+  - Immutable audit trail
+  - Track all user actions
+  - Security monitoring
+  - Compliance logging
+  - IP and User-Agent tracking
+end note
+
+@enduml

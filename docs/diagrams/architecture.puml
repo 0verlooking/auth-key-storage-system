@@ -1,0 +1,74 @@
+@startuml architecture
+!theme blueprint
+!include <C4/C4_Container>
+
+title Architecture Діаграма - Auth Key Storage System
+
+Person(user, "Користувач", "Зареєстрований користувач системи")
+
+System_Boundary(system, "Auth Key Storage System") {
+    Container(frontend, "Frontend Application", "React 18, Vite, TailwindCSS", "Single Page Application для управління ключами з Zero-Knowledge шифруванням")
+    
+    Container(backend, "Backend API", "Spring Boot 3.2, Java 17", "REST API для обробки запитів та бізнес-логіки")
+    
+    ContainerDb(postgres, "PostgreSQL Database", "PostgreSQL 15", "Зберігає зашифровані ключі, користувачів, папки, теги")
+    
+    ContainerDb(redis, "Redis Cache", "Redis 7", "Кешування сесій, share links, часто використовуваних даних")
+}
+
+System_Ext(email, "Email Service", "Відправка email сповіщень")
+System_Ext(browser, "Web Browser", "Chrome, Firefox, Safari")
+
+Rel(user, browser, "Використовує", "HTTPS")
+Rel(browser, frontend, "Відкриває", "HTTPS, Port 80/443")
+
+Rel(frontend, backend, "API calls", "REST/JSON, HTTPS, Port 8080")
+Rel(backend, postgres, "Читає/Записує", "JDBC, Port 5432")
+Rel(backend, redis, "Кешує/Отримує", "Redis Protocol, Port 6379")
+Rel(backend, email, "Відправляє email", "SMTP")
+
+note right of frontend
+  **Frontend Features:**
+  - React 18 з Vite
+  - TailwindCSS для стилізації
+  - Zero-Knowledge шифрування (AES-256-GCM)
+  - Axios для HTTP запитів
+  - React Router для навігації
+  - Context API для state management
+  - CryptoJS для шифрування
+end note
+
+note right of backend
+  **Backend Features:**
+  - Spring Boot 3.2
+  - Spring Security + JWT
+  - Spring Data JPA
+  - Spring Data Redis
+  - RESTful API
+  - Swagger/OpenAPI docs
+  - Async operations
+  - Exception handling
+end note
+
+note right of postgres
+  **Database Schema:**
+  - users
+  - auth_keys
+  - folders
+  - tags
+  - share_links
+  - audit_logs
+  - user_sessions
+end note
+
+note right of redis
+  **Cache Strategy:**
+  - User sessions (TTL: 24h)
+  - Share links (TTL: variable)
+  - Frequently accessed keys
+  - Rate limiting data
+end note
+
+LAYOUT_LEFT_RIGHT()
+
+@enduml

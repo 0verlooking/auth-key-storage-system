@@ -1,0 +1,64 @@
+Auth Key Storage System - DTOs and Services Structure
+=====================================================
+
+backend/src/main/java/com/authkey/storage/
+│
+├── dto/
+│   ├── request/
+│   │   ├── RegisterRequest.java
+│   │   ├── LoginRequest.java
+│   │   ├── ChangePasswordRequest.java
+│   │   ├── ForgotPasswordRequest.java
+│   │   ├── ResetPasswordRequest.java
+│   │   ├── CreateAuthKeyRequest.java
+│   │   ├── UpdateAuthKeyRequest.java
+│   │   ├── CreateFolderRequest.java
+│   │   ├── UpdateFolderRequest.java
+│   │   ├── CreateTagRequest.java
+│   │   └── CreateShareLinkRequest.java
+│   │
+│   └── response/
+│       ├── AuthResponse.java
+│       ├── UserResponse.java
+│       ├── AuthKeyResponse.java
+│       ├── FolderResponse.java
+│       ├── TagResponse.java
+│       ├── ShareLinkResponse.java
+│       ├── AuditLogResponse.java
+│       ├── ApiResponse.java
+│       └── MessageResponse.java
+│
+├── service/
+│   ├── UserService.java (interface)
+│   ├── AuthService.java (interface)
+│   ├── AuthKeyService.java (interface)
+│   ├── FolderService.java (interface)
+│   ├── TagService.java (interface)
+│   ├── ShareLinkService.java (interface)
+│   ├── AuditLogService.java (interface)
+│   ├── EmailService.java (interface)
+│   │
+│   └── impl/
+│       ├── UserServiceImpl.java
+│       ├── AuthServiceImpl.java
+│       ├── AuthKeyServiceImpl.java
+│       ├── FolderServiceImpl.java
+│       ├── TagServiceImpl.java
+│       ├── ShareLinkServiceImpl.java
+│       ├── AuditLogServiceImpl.java
+│       └── EmailServiceImpl.java
+│
+├── exception/
+│   ├── ResourceNotFoundException.java
+│   ├── BadRequestException.java
+│   └── UnauthorizedException.java
+│
+└── security/
+    └── JwtService.java
+
+TOTAL FILES CREATED: 40
+======================
+- DTOs: 20 files (11 Request + 9 Response)
+- Services: 16 files (8 Interfaces + 8 Implementations)
+- Exceptions: 3 files
+- Security: 1 file

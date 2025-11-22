@@ -1,0 +1,164 @@
+@startuml sequence-share-link
+!theme blueprint
+title Sequence Діаграма - Створення та Доступ до Share Link
+
+actor User as "Користувач"
+participant Frontend as "React Frontend"
+participant Backend as "Spring Boot\nBackend"
+participant ShareLinkService as "ShareLinkService"
+participant AuthKeyService as "AuthKeyService"
+participant Database as "PostgreSQL"
+participant Redis as "Redis Cache"
+
+== Створення Share Link ==
+
+User -> Frontend: Обрати ключ для sharing
+activate Frontend
+
+Frontend -> Frontend: Розшифрувати ключ\n(Zero-Knowledge)
+Frontend -> Backend: POST /api/share-links\n{keyId, encryptedValue, expiresAt}
+activate Backend
+
+Backend -> Backend: Перевірити JWT токен\n(Security Filter)
+
+Backend -> ShareLinkService: createShareLink(request)
+activate ShareLinkService
+
+ShareLinkService -> AuthKeyService: getAuthKeyById(keyId)
+activate AuthKeyService
+AuthKeyService -> Database: SELECT * FROM auth_keys\nWHERE id = ?
+Database --> AuthKeyService: AuthKey entity
+deactivate AuthKeyService
+
+ShareLinkService -> ShareLinkService: Перевірити права\nвласності ключа
+
+ShareLinkService -> ShareLinkService: Згенерувати\nунікальний token\n(UUID)
+
+ShareLinkService -> Database: INSERT INTO share_links\n(token, auth_key_id,\nencrypted_value,\nexpires_at, max_access_count)
+Database --> ShareLinkService: ShareLink entity
+
+ShareLinkService -> Redis: SETEX share_link:{token}\n{shareLink} EX {TTL}
+Redis --> ShareLinkService: OK
+
+ShareLinkService --> Backend: ShareLinkResponse
+deactivate ShareLinkService
+
+Backend --> Frontend: 201 Created\n{token, shareUrl, expiresAt}
+deactivate Backend
+
+Frontend -> Frontend: Показати modal\nз share URL
+Frontend --> User: Share URL скопійовано
+deactivate Frontend
+
+== Доступ до Share Link ==
+
+actor Recipient as "Отримувач"
+participant RecipientBrowser as "Browser\n(Recipient)"
+
+Recipient -> RecipientBrowser: Відкрити share URL\n(https://.../share/{token})
+activate RecipientBrowser
+
+RecipientBrowser -> Backend: GET /api/share-links/{token}
+activate Backend
+
+Backend -> ShareLinkService: getShareLinkByToken(token)
+activate ShareLinkService
+
+ShareLinkService -> Redis: GET share_link:{token}
+activate Redis
+Redis --> ShareLinkService: ShareLink data (якщо є в кеші)
+deactivate Redis
+
+alt Знайдено в Redis Cache
+    ShareLinkService -> ShareLinkService: Перевірити expiration\nта access count
+else Не знайдено в Cache
+    ShareLinkService -> Database: SELECT * FROM share_links\nWHERE token = ?\nAND is_active = true
+    Database --> ShareLinkService: ShareLink entity
+
+    ShareLinkService -> ShareLinkService: Перевірити expiration\nта access count
+
+    ShareLinkService -> Redis: SETEX share_link:{token}\n{shareLink} EX {TTL}
+    Redis --> ShareLinkService: OK
+end
+
+alt Посилання валідне
+    ShareLinkService -> ShareLinkService: Інкрементувати\naccess count
+
+    ShareLinkService -> Database: UPDATE share_links\nSET access_count = access_count + 1\nWHERE id = ?
+    Database --> ShareLinkService: Updated
+
+    alt Досягнуто max_access_count
+        ShareLinkService -> ShareLinkService: Деактивувати link
+        ShareLinkService -> Database: UPDATE share_links\nSET is_active = false\nWHERE id = ?
+        Database --> ShareLinkService: Updated
+
+        ShareLinkService -> Redis: DEL share_link:{token}
+        Redis --> ShareLinkService: OK
+    end
+
+    ShareLinkService -> AuthKeyService: getAuthKeyById(keyId)
+    activate AuthKeyService
+    AuthKeyService -> Database: SELECT * FROM auth_keys\nWHERE id = ?
+    Database --> AuthKeyService: AuthKey metadata
+    deactivate AuthKeyService
+
+    ShareLinkService --> Backend: ShareLinkViewResponse\n{keyName, encryptedValue,\nexpiresAt, accessCount}
+
+    Backend --> RecipientBrowser: 200 OK\n{shareLinkData}
+
+    RecipientBrowser -> RecipientBrowser: Показати ключ\n(read-only)
+    RecipientBrowser --> Recipient: Відобразити зашифрований ключ
+
+else Посилання невалідне (expired або max access)
+    ShareLinkService --> Backend: throw ShareLinkExpiredException\nабо ShareLinkNotFoundException
+
+    Backend --> RecipientBrowser: 404 Not Found\nабо 410 Gone
+
+    RecipientBrowser --> Recipient: "Посилання прострочене\nабо недійсне"
+end
+
+deactivate ShareLinkService
+deactivate Backend
+deactivate RecipientBrowser
+
+== Видалення Share Link ==
+
+User -> Frontend: Видалити share link
+activate Frontend
+
+Frontend -> Backend: DELETE /api/share-links/{id}
+activate Backend
+
+Backend -> ShareLinkService: deleteShareLink(id, userId)
+activate ShareLinkService
+
+ShareLinkService -> Database: SELECT * FROM share_links\nWHERE id = ? AND user_id = ?
+Database --> ShareLinkService: ShareLink entity
+
+ShareLinkService -> ShareLinkService: Перевірити права\nвласності
+
+ShareLinkService -> Database: UPDATE share_links\nSET is_active = false,\ndeleted_at = NOW()\nWHERE id = ?
+Database --> ShareLinkService: Updated
+
+ShareLinkService -> Redis: DEL share_link:{token}
+Redis --> ShareLinkService: OK
+
+ShareLinkService --> Backend: Success
+deactivate ShareLinkService
+
+Backend --> Frontend: 204 No Content
+deactivate Backend
+
+Frontend -> Frontend: Оновити список\nshare links
+Frontend --> User: Link видалено
+deactivate Frontend
+
+note over User, Redis
+  **Особливості Zero-Knowledge:**
+  - Frontend розшифровує ключ перед відправкою
+  - Backend зберігає зашифроване значення
+  - Отримувач бачить зашифроване значення
+  - Можливість розшифрування тільки з master password
+end note
+
+@enduml

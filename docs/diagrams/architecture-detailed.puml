@@ -1,0 +1,270 @@
+@startuml architecture-detailed
+!theme blueprint
+title Детальна Архітектура - Docker Containers та Компоненти
+
+'=========================================
+' Docker Containers
+'=========================================
+package "Docker Environment" {
+    
+    '=========================================
+    ' Frontend Container
+    '=========================================
+    node "Frontend Container\n:80" as frontend_container {
+        component "Nginx" as nginx {
+            portin nginx_80
+        }
+        
+        folder "React SPA" as react_spa {
+            component "App.jsx" as app
+            component "Components" as components
+            component "Pages" as pages
+            component "Services" as frontend_services
+            component "Context" as context
+            component "Utils/Crypto" as crypto
+        }
+    }
+    
+    '=========================================
+    ' Backend Container
+    '=========================================
+    node "Backend Container\n:8080" as backend_container {
+        component "Spring Boot App" as springboot {
+            portin backend_8080
+        }
+        
+        package "Presentation Layer" {
+            component "REST Controllers" as controllers {
+                component "AuthController"
+                component "AuthKeyController"
+                component "FolderController"
+                component "ShareLinkController"
+                component "TagController"
+                component "UserController"
+                component "AuditLogController"
+            }
+        }
+        
+        package "Security Layer" {
+            component "Security Config" as security
+            component "JWT Filter" as jwt_filter
+            component "JWT Provider" as jwt_provider
+        }
+        
+        package "Service Layer" {
+            component "Service Interfaces" as service_interfaces
+            component "Service Implementations" as service_impl {
+                component "AuthKeyServiceImpl"
+                component "UserServiceImpl"
+                component "FolderServiceImpl"
+                component "ShareLinkServiceImpl"
+                component "TagServiceImpl"
+                component "AuditLogServiceImpl"
+                component "EmailServiceImpl"
+            }
+        }
+        
+        package "Data Access Layer" {
+            component "JPA Repositories" as repositories {
+                component "AuthKeyRepository"
+                component "UserRepository"
+                component "FolderRepository"
+                component "ShareLinkRepository"
+                component "TagRepository"
+                component "AuditLogRepository"
+            }
+        }
+        
+        package "Domain Layer" {
+            component "Entities" as entities
+            component "DTOs" as dtos
+            component "Enums" as enums
+        }
+        
+        package "Configuration" {
+            component "RedisConfig" as redis_config
+            component "CorsConfig" as cors_config
+            component "OpenApiConfig" as openapi_config
+            component "AsyncConfig" as async_config
+        }
+        
+        package "Exception Handling" {
+            component "GlobalExceptionHandler"
+            component "Custom Exceptions"
+        }
+    }
+    
+    '=========================================
+    ' PostgreSQL Container
+    '=========================================
+    database "PostgreSQL Container\n:5432" as postgres_container {
+        component "PostgreSQL 15" as postgres {
+            portin postgres_5432
+        }
+        
+        storage "postgres-data volume" as pg_volume {
+            folder "Database" {
+                frame "users"
+                frame "auth_keys"
+                frame "folders"
+                frame "tags"
+                frame "auth_key_tags"
+                frame "share_links"
+                frame "audit_logs"
+                frame "user_sessions"
+            }
+        }
+    }
+    
+    '=========================================
+    ' Redis Container
+    '=========================================
+    database "Redis Container\n:6379" as redis_container {
+        component "Redis 7" as redis {
+            portin redis_6379
+        }
+        
+        storage "redis-data volume" as redis_volume {
+            folder "Cache" {
+                frame "user_sessions"
+                frame "share_links:{token}"
+                frame "rate_limit:{ip}"
+                frame "frequent_keys"
+            }
+        }
+    }
+    
+    '=========================================
+    ' PgAdmin Container (Optional)
+    '=========================================
+    node "PgAdmin Container\n:5050" as pgadmin_container {
+        component "PgAdmin 4" as pgadmin {
+            portin pgadmin_5050
+        }
+    }
+}
+
+'=========================================
+' External Systems
+'=========================================
+actor "User" as user
+cloud "SMTP Server" as smtp
+
+'=========================================
+' Network
+'=========================================
+package "Docker Network: auth-key-storage-network" {
+    component "Bridge Network" as network
+}
+
+'=========================================
+' Relationships
+'=========================================
+
+' User interactions
+user --> nginx_80 : HTTPS (Port 80/443)
+
+' Frontend to Backend
+react_spa --> backend_8080 : REST API\n(Port 8080)
+crypto ..> react_spa : Zero-Knowledge\nEncryption
+
+' Controllers to Services
+controllers --> service_impl : Business Logic
+
+' Security Filter Chain
+jwt_filter --> controllers : Authorize
+jwt_provider ..> jwt_filter : Validate JWT
+
+' Services to Repositories
+service_impl --> repositories : Data Access
+
+' Repositories to Database
+repositories --> postgres_5432 : JPA/Hibernate\n(Port 5432)
+
+' Redis Cache
+service_impl --> redis_6379 : Cache Operations\n(Port 6379)
+redis_config ..> redis_6379 : Configuration
+
+' Database Volume
+postgres --> pg_volume : Persist Data
+redis --> redis_volume : Persist Cache
+
+' Email Service
+service_impl --> smtp : Send Emails\n(Port 587)
+
+' PgAdmin
+user --> pgadmin_5050 : Database Admin\n(Port 5050)
+pgadmin --> postgres_5432 : Manage DB
+
+' Network
+frontend_container -[hidden]- network
+backend_container -[hidden]- network
+postgres_container -[hidden]- network
+redis_container -[hidden]- network
+
+note right of frontend_container
+  **Технології:**
+  - React 18.2
+  - Vite 5.0
+  - TailwindCSS 3.4
+  - Axios 1.6
+  - React Router 6.21
+  - CryptoJS 4.2
+  
+  **Port Mapping:**
+  80:80 (HTTP)
+end note
+
+note right of backend_container
+  **Технології:**
+  - Spring Boot 3.2.1
+  - Spring Security 6.2
+  - Spring Data JPA
+  - Spring Data Redis
+  - PostgreSQL Driver
+  - JWT (jjwt 0.12)
+  - Lombok
+  - MapStruct
+  
+  **Port Mapping:**
+  8080:8080
+end note
+
+note right of postgres_container
+  **Configuration:**
+  - PostgreSQL 15 Alpine
+  - max_connections: 200
+  - shared_buffers: 256MB
+  - effective_cache_size: 1GB
+  
+  **Port Mapping:**
+  5432:5432
+  
+  **Volume:**
+  postgres-data
+end note
+
+note right of redis_container
+  **Configuration:**
+  - Redis 7 Alpine
+  - maxmemory: 256MB
+  - maxmemory-policy: allkeys-lru
+  - Password protected
+  
+  **Port Mapping:**
+  6379:6379
+  
+  **Volume:**
+  redis-data
+end note
+
+note bottom of network
+  **Docker Network:**
+  Driver: bridge
+  Name: auth-key-storage-network
+  
+  All containers communicate
+  through this isolated network
+end note
+
+@enduml

@@ -1,0 +1,79 @@
+# ============================================================================
+# Backend .dockerignore
+# ============================================================================
+# Файли та директорії, які не повинні копіюватися в Docker образ
+# Це зменшує розмір контексту збірки та прискорює процес
+# ============================================================================
+
+# Maven build output
+target/
+!target/*.jar
+*.class
+
+# Maven wrapper (якщо є)
+.mvn/
+mvnw
+mvnw.cmd
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.factorypath
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+README*.md
+CHANGELOG.md
+LICENSE
+docs/
+*.md
+
+# Test files
+src/test/
+test/
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+
+# Application properties (використовуємо environment variables)
+application-local.properties
+application-dev.properties
+.env
+.env.*
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+Jenkinsfile
+
+# Package files
+*.tar.gz
+*.zip
+*.war

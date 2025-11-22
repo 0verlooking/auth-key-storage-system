@@ -1,0 +1,400 @@
+@startuml design-patterns
+!theme blueprint
+title Design Patterns - Auth Key Storage System
+
+'=========================================
+' 1. Repository Pattern
+'=========================================
+package "1. Repository Pattern" {
+    interface AuthKeyRepository <<Repository>> {
+        + findById(Long): Optional<AuthKey>
+        + findByUserId(Long): List<AuthKey>
+        + findByUserIdAndFolderId(Long, Long): List<AuthKey>
+        + save(AuthKey): AuthKey
+        + delete(AuthKey): void
+    }
+    
+    class "JpaRepository" as JpaRepo <<Spring Data>>
+    
+    class AuthKeyServiceImpl <<Service>> {
+        - authKeyRepository: AuthKeyRepository
+        + getAllKeysByUser(Long): List<AuthKey>
+    }
+    
+    database "PostgreSQL" as db
+    
+    JpaRepo <|-- AuthKeyRepository
+    AuthKeyServiceImpl --> AuthKeyRepository : uses
+    AuthKeyRepository --> db : JDBC
+    
+    note bottom of AuthKeyRepository
+        **Repository Pattern**
+        Абстрагує доступ до даних
+        від бізнес-логіки.
+        Spring Data JPA автоматично
+        генерує імплементацію.
+    end note
+}
+
+'=========================================
+' 2. Service Pattern (Layer Pattern)
+'=========================================
+package "2. Service Pattern" <<Rectangle>> {
+    interface AuthKeyService <<Interface>> {
+        + createAuthKey(request): AuthKeyResponse
+        + updateAuthKey(id, request): AuthKeyResponse
+        + deleteAuthKey(id): void
+        + getAuthKeyById(id): AuthKeyResponse
+    }
+    
+    class AuthKeyServiceImpl2 <<Service>> {
+        - authKeyRepository: AuthKeyRepository
+        - auditLogService: AuditLogService
+        - redisTemplate: RedisTemplate
+        + createAuthKey(request): AuthKeyResponse
+        + updateAuthKey(id, request): AuthKeyResponse
+    }
+    
+    class AuthKeyController <<Controller>> {
+        - authKeyService: AuthKeyService
+        + createKey(request): ResponseEntity
+    }
+    
+    AuthKeyService <|.. AuthKeyServiceImpl2 : implements
+    AuthKeyController --> AuthKeyService : uses
+    
+    note bottom of AuthKeyService
+        **Service Pattern**
+        Відокремлює бізнес-логіку
+        від контролерів та репозиторіїв.
+        Забезпечує Single Responsibility.
+    end note
+}
+
+'=========================================
+' 3. DTO Pattern
+'=========================================
+package "3. DTO Pattern (Data Transfer Object)" {
+    class AuthKeyRequest <<DTO>> {
+        - name: String
+        - keyType: KeyType
+        - encryptedValue: String
+        - folderId: Long
+        - tags: List<String>
+    }
+    
+    class AuthKeyResponse <<DTO>> {
+        - id: Long
+        - name: String
+        - keyType: KeyType
+        - folderId: Long
+        - createdAt: LocalDateTime
+    }
+    
+    class AuthKey <<Entity>> {
+        - id: Long
+        - name: String
+        - encryptedValue: String
+        - user: User
+        - folder: Folder
+    }
+    
+    class AuthKeyMapper <<Mapper>> {
+        + toEntity(request): AuthKey
+        + toResponse(entity): AuthKeyResponse
+    }
+    
+    AuthKeyRequest ..> AuthKeyMapper : maps to
+    AuthKeyMapper ..> AuthKey : creates
+    AuthKey ..> AuthKeyMapper : maps from
+    AuthKeyMapper ..> AuthKeyResponse : creates
+    
+    note bottom of AuthKeyRequest
+        **DTO Pattern**
+        Передає дані між шарами
+        без розкриття внутрішньої
+        структури Entity.
+        Використовує MapStruct.
+    end note
+}
+
+'=========================================
+' 4. Singleton Pattern
+'=========================================
+package "4. Singleton Pattern" {
+    class RedisConfig <<@Configuration>> {
+        + redisTemplate(): RedisTemplate
+        + cacheManager(): CacheManager
+    }
+    
+    class "RedisTemplate" as RedisTemplate <<@Bean>> {
+        {static} - instance: RedisTemplate
+        + opsForValue(): ValueOperations
+        + opsForHash(): HashOperations
+    }
+    
+    class SecurityConfig <<@Configuration>> {
+        + passwordEncoder(): BCryptPasswordEncoder
+        + authenticationManager(): AuthenticationManager
+    }
+    
+    class "BCryptPasswordEncoder" as BCrypt <<@Bean>> {
+        {static} - instance: BCryptPasswordEncoder
+        + encode(password): String
+    }
+    
+    RedisConfig --> RedisTemplate : creates
+    SecurityConfig --> BCrypt : creates
+    
+    note bottom of RedisTemplate
+        **Singleton Pattern**
+        Spring Boot створює єдиний
+        екземпляр @Bean компонентів.
+        Використовується для Config,
+        Services, Repositories.
+    end note
+}
+
+'=========================================
+' 5. Factory Pattern
+'=========================================
+package "5. Factory Pattern" {
+    interface NotificationStrategy {
+        + send(message): void
+    }
+    
+    class EmailNotification {
+        + send(message): void
+    }
+    
+    class PushNotification {
+        + send(message): void
+    }
+    
+    class NotificationFactory {
+        + createNotification(type): NotificationStrategy
+    }
+    
+    NotificationStrategy <|.. EmailNotification
+    NotificationStrategy <|.. PushNotification
+    NotificationFactory ..> NotificationStrategy : creates
+    NotificationFactory ..> EmailNotification : creates
+    NotificationFactory ..> PushNotification : creates
+    
+    note bottom of NotificationFactory
+        **Factory Pattern**
+        Створює об'єкти різних типів
+        на основі параметрів.
+        Використовується для створення
+        різних типів нотифікацій.
+    end note
+}
+
+'=========================================
+' 6. Strategy Pattern
+'=========================================
+package "6. Strategy Pattern" {
+    interface EncryptionStrategy {
+        + encrypt(data): String
+        + decrypt(data): String
+    }
+    
+    class AESEncryption {
+        + encrypt(data): String
+        + decrypt(data): String
+    }
+    
+    class RSAEncryption {
+        + encrypt(data): String
+        + decrypt(data): String
+    }
+    
+    class CryptoService {
+        - strategy: EncryptionStrategy
+        + setStrategy(strategy): void
+        + encryptData(data): String
+    }
+    
+    EncryptionStrategy <|.. AESEncryption
+    EncryptionStrategy <|.. RSAEncryption
+    CryptoService --> EncryptionStrategy : uses
+    
+    note bottom of CryptoService
+        **Strategy Pattern**
+        Дозволяє змінювати алгоритм
+        шифрування в runtime.
+        Використовується для різних
+        методів шифрування ключів.
+    end note
+}
+
+'=========================================
+' 7. Observer Pattern
+'=========================================
+package "7. Observer Pattern (Event Driven)" {
+    class AuditLogEvent <<Event>> {
+        - userId: Long
+        - action: String
+        - resourceType: String
+        - timestamp: LocalDateTime
+    }
+    
+    class AuditLogPublisher {
+        + publishEvent(event): void
+    }
+    
+    class AuditLogListener <<@EventListener>> {
+        + handleAuditEvent(event): void
+    }
+    
+    class EmailNotificationListener <<@EventListener>> {
+        + handleAuditEvent(event): void
+    }
+    
+    AuditLogPublisher ..> AuditLogEvent : publishes
+    AuditLogEvent ..> AuditLogListener : notifies
+    AuditLogEvent ..> EmailNotificationListener : notifies
+    
+    note bottom of AuditLogEvent
+        **Observer Pattern**
+        Використовує Spring Events
+        для асинхронної обробки подій.
+        @EventListener реагує на події
+        без прямого зв'язку з Publisher.
+    end note
+}
+
+'=========================================
+' 8. Template Method Pattern
+'=========================================
+package "8. Template Method Pattern" {
+    abstract class BaseService {
+        + {abstract} validate(request): void
+        + {abstract} processData(request): Entity
+        + execute(request): Response {
+            validate(request)
+            entity = processData(request)
+            save(entity)
+            return toResponse(entity)
+        }
+        # save(entity): void
+        # toResponse(entity): Response
+    }
+    
+    class AuthKeyServiceTemplate {
+        + validate(request): void
+        + processData(request): AuthKey
+    }
+    
+    class FolderServiceTemplate {
+        + validate(request): void
+        + processData(request): Folder
+    }
+    
+    BaseService <|-- AuthKeyServiceTemplate
+    BaseService <|-- FolderServiceTemplate
+    
+    note bottom of BaseService
+        **Template Method Pattern**
+        Визначає скелет алгоритму,
+        дозволяючи підкласам
+        перевизначати окремі кроки.
+        Використовується для CRUD операцій.
+    end note
+}
+
+'=========================================
+' 9. Composite Pattern
+'=========================================
+package "9. Composite Pattern" {
+    interface FolderComponent {
+        + getName(): String
+        + getSize(): int
+        + getChildren(): List<FolderComponent>
+    }
+    
+    class Folder {
+        - id: Long
+        - name: String
+        - parent: Folder
+        - children: List<Folder>
+        - keys: List<AuthKey>
+        + getName(): String
+        + getSize(): int
+        + getChildren(): List<FolderComponent>
+        + add(component): void
+        + remove(component): void
+    }
+    
+    class AuthKeyLeaf {
+        - id: Long
+        - name: String
+        + getName(): String
+        + getSize(): int
+        + getChildren(): List<FolderComponent>
+    }
+    
+    FolderComponent <|.. Folder
+    FolderComponent <|.. AuthKeyLeaf
+    Folder "1" *-- "many" Folder : contains
+    Folder "1" *-- "many" AuthKeyLeaf : contains
+    
+    note bottom of Folder
+        **Composite Pattern**
+        Організовує папки та ключі
+        в деревоподібну структуру.
+        Дозволяє обробляти окремі
+        об'єкти і композиції однаково.
+    end note
+}
+
+'=========================================
+' 10. Dependency Injection Pattern
+'=========================================
+package "10. Dependency Injection (Spring IoC)" {
+    class AuthController2 <<@RestController>> {
+        - authKeyService: AuthKeyService
+        - folderService: FolderService
+        - auditLogService: AuditLogService
+        + AuthController2(services...)
+    }
+    
+    class "Spring Container" as SpringContainer <<IoC Container>> {
+        + getBean(class): Object
+        + autowire(class): Object
+    }
+    
+    SpringContainer ..> AuthController2 : injects dependencies
+    
+    note bottom of AuthController2
+        **Dependency Injection**
+        Spring автоматично інжектує
+        залежності через конструктор.
+        Забезпечує Loose Coupling
+        та полегшує тестування.
+    end note
+}
+
+'=========================================
+' SOLID Principles Mapping
+'=========================================
+note as SOLID
+    **SOLID Principles:**
+    
+    **S** - Single Responsibility
+    Кожен Service відповідає за одну сутність
+    
+    **O** - Open/Closed
+    Strategy Pattern дозволяє розширювати
+    
+    **L** - Liskov Substitution
+    Repository можна замінити Mock
+    
+    **I** - Interface Segregation
+    Інтерфейси Service розділені по функціональності
+    
+    **D** - Dependency Inversion
+    Контролери залежать від інтерфейсів, не реалізацій
+end note
+
+@enduml

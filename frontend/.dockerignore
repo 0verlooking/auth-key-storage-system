@@ -1,0 +1,93 @@
+# ============================================================================
+# Frontend .dockerignore
+# ============================================================================
+# Файли та директорії, які не повинні копіюватися в Docker образ
+# Це зменшує розмір контексту збірки та прискорює процес
+# ============================================================================
+
+# Node modules (буде встановлено в контейнері)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output (якщо є локально)
+dist/
+build/
+.cache/
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+README*.md
+CHANGELOG.md
+LICENSE
+docs/
+*.md
+
+# Test files
+**/__tests__/
+**/*.test.js
+**/*.test.jsx
+**/*.spec.js
+**/*.spec.jsx
+coverage/
+.nyc_output/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+Jenkinsfile
+
+# Linting and formatting
+.eslintrc*
+.prettierrc*
+.editorconfig
+
+# Package manager lock files (опціонально, але краще включити package-lock.json)
+# package-lock.json
+# yarn.lock
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Storybook
+.storybook/
+storybook-static/
+
+# TypeScript
+*.tsbuildinfo
+
+# Misc
+.browserslistrc

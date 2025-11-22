@@ -1,0 +1,174 @@
+@startuml use-case
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
+skinparam actorStyle awesome
+
+left to right direction
+skinparam packageStyle rectangle
+
+actor "User" as user
+actor "Admin" as admin
+
+rectangle "Auth Key Storage System" {
+
+    package "Authentication & Authorization" {
+        usecase "UC-1\nRegister Account" as UC1
+        usecase "UC-2\nLogin" as UC2
+        usecase "UC-3\nLogout" as UC3
+        usecase "UC-4\nVerify Email" as UC4
+        usecase "UC-5\nForgot Password" as UC5
+        usecase "UC-6\nReset Password" as UC6
+        usecase "UC-7\nRefresh Token" as UC7
+    }
+
+    package "Profile Management" {
+        usecase "UC-8\nView Profile" as UC8
+        usecase "UC-9\nUpdate Profile" as UC9
+        usecase "UC-10\nChange Password" as UC10
+        usecase "UC-11\nEnable 2FA" as UC11
+    }
+
+    package "Auth Key Management" {
+        usecase "UC-12\nCreate Auth Key" as UC12
+        usecase "UC-13\nView Auth Keys" as UC13
+        usecase "UC-14\nUpdate Auth Key" as UC14
+        usecase "UC-15\nDelete Auth Key" as UC15
+        usecase "UC-16\nMark as Favorite" as UC16
+        usecase "UC-17\nSet Expiration" as UC17
+    }
+
+    package "Organization & Categorization" {
+        usecase "UC-18\nCreate Folder" as UC18
+        usecase "UC-19\nMove to Folder" as UC19
+        usecase "UC-20\nCreate Subfolder" as UC20
+        usecase "UC-21\nCreate Tag" as UC21
+        usecase "UC-22\nAssign Tags" as UC22
+        usecase "UC-23\nManage Tags" as UC23
+    }
+
+    package "Search & Filter" {
+        usecase "UC-24\nSearch Keys" as UC24
+        usecase "UC-25\nFilter by Folder" as UC25
+        usecase "UC-26\nFilter by Tag" as UC26
+        usecase "UC-27\nFilter by Type" as UC27
+        usecase "UC-28\nView Favorites" as UC28
+    }
+
+    package "Secure Sharing" {
+        usecase "UC-29\nCreate Share Link" as UC29
+        usecase "UC-30\nSet Access Limit" as UC30
+        usecase "UC-31\nSet Expiration" as UC31
+        usecase "UC-32\nProtect with Password" as UC32
+        usecase "UC-33\nRevoke Share Link" as UC33
+        usecase "UC-34\nView Share Links" as UC34
+    }
+
+    package "Security & Audit" {
+        usecase "UC-35\nView Audit Log" as UC35
+        usecase "UC-36\nExport Audit Log" as UC36
+        usecase "UC-37\nMonitor Access" as UC37
+        usecase "UC-38\nView Login History" as UC38
+    }
+
+    package "Password Tools" {
+        usecase "UC-39\nGenerate Password" as UC39
+        usecase "UC-40\nCheck Password Strength" as UC40
+    }
+
+    package "Data Management (Future)" {
+        usecase "UC-41\nExport Keys" as UC41
+        usecase "UC-42\nImport Keys" as UC42
+        usecase "UC-43\nBackup Data" as UC43
+    }
+
+    package "Admin Functions" {
+        usecase "UC-44\nManage Users" as UC44
+        usecase "UC-45\nView System Stats" as UC45
+        usecase "UC-46\nSystem Settings" as UC46
+    }
+}
+
+' User relationships
+user --> UC1
+user --> UC2
+user --> UC3
+user --> UC4
+user --> UC5
+user --> UC6
+user --> UC7
+
+user --> UC8
+user --> UC9
+user --> UC10
+user --> UC11
+
+user --> UC12
+user --> UC13
+user --> UC14
+user --> UC15
+user --> UC16
+user --> UC17
+
+user --> UC18
+user --> UC19
+user --> UC20
+user --> UC21
+user --> UC22
+user --> UC23
+
+user --> UC24
+user --> UC25
+user --> UC26
+user --> UC27
+user --> UC28
+
+user --> UC29
+user --> UC30
+user --> UC31
+user --> UC32
+user --> UC33
+user --> UC34
+
+user --> UC35
+user --> UC36
+user --> UC37
+user --> UC38
+
+user --> UC39
+user --> UC40
+
+user --> UC41
+user --> UC42
+user --> UC43
+
+' Admin relationships (inherits all user capabilities)
+admin --|> user
+admin --> UC44
+admin --> UC45
+admin --> UC46
+
+' Extend relationships
+UC2 ..> UC7 : <<extend>>
+UC12 ..> UC39 : <<include>>
+UC12 ..> UC40 : <<include>>
+UC29 ..> UC30 : <<include>>
+UC29 ..> UC31 : <<include>>
+UC29 ..> UC32 : <<extend>>
+
+' Notes
+note right of UC12
+  Client-side encryption
+  with AES-256-GCM
+  and master password
+end note
+
+note right of UC29
+  Zero-knowledge sharing
+  with temporary access
+end note
+
+note bottom of UC35
+  Immutable audit trail
+  for security monitoring
+end note
+
+@enduml

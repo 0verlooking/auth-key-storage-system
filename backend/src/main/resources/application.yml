@@ -1,0 +1,155 @@
+spring:
+  application:
+    name: auth-key-storage-system
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:authkey_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        show_sql: false
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    show-sql: false
+
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    timeout: 60000
+    jedis:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# Application Configuration
+app:
+  name: Auth Key Storage System
+  version: 1.0.0
+
+  # JWT Configuration
+  jwt:
+    secret: ${JWT_SECRET:your-super-secret-jwt-key-change-this-in-production-min-256-bits}
+    access-token-expiration: 900000 # 15 minutes in milliseconds
+    refresh-token-expiration: 86400000 # 24 hours in milliseconds
+    issuer: auth-key-storage-system
+
+  # Security Configuration
+  security:
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+      allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+      allowed-headers: "*"
+      allow-credentials: true
+      max-age: 3600
+
+    # Password encryption iterations (PBKDF2)
+    password:
+      iterations: 600000
+      salt-length: 32
+      key-length: 256
+
+  # Email verification
+  email:
+    verification:
+      enabled: ${EMAIL_VERIFICATION_ENABLED:true}
+      token-expiration: 86400000 # 24 hours
+      from: ${EMAIL_FROM:noreply@authkey.com}
+      base-url: ${APP_BASE_URL:http://localhost:3000}
+
+  # File storage
+  storage:
+    location: ${STORAGE_LOCATION:./storage}
+    max-file-size: 10485760 # 10MB in bytes
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.authkey.storage: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/application.log
+    max-size: 10MB
+    max-history: 30
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Springdoc OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /api/v1/api-docs
+  swagger-ui:
+    path: /api/v1/swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    disable-swagger-default-url: true
+    display-request-duration: true

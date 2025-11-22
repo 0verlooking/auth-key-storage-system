@@ -1,0 +1,416 @@
+@startuml wireframes
+!theme blueprint
+title Wireframes - Auth Key Storage System
+
+'=========================================
+' Login Page
+'=========================================
+salt "1. Login Page" {
+  {+
+    {/ <b>Auth Key Storage System</b> | }
+    {
+      .
+      "   "
+      {
+        <b>Вхід до системи</b>
+        .
+        Username / Email
+        ^username@example.com^
+        .
+        Password
+        ^**********^
+        .
+        [X] Remember me
+        .
+        [ Login ]
+        .
+        <&account-login> Forgot password? | <&account-login> Register
+      }
+      "   "
+      .
+    }
+  }
+}
+
+'=========================================
+' Register Page
+'=========================================
+salt "2. Register Page" {
+  {+
+    {/ <b>Auth Key Storage System</b> | }
+    {
+      .
+      "   "
+      {
+        <b>Реєстрація нового користувача</b>
+        .
+        Full Name
+        ^John Doe^
+        .
+        Email
+        ^john.doe@example.com^
+        .
+        Username
+        ^johndoe^
+        .
+        Password
+        ^**********^
+        .
+        Confirm Password
+        ^**********^
+        .
+        Master Password (для шифрування)
+        ^**********^
+        .
+        [X] I agree to Terms and Conditions
+        .
+        [ Register ]
+        .
+        <&account-login> Already have account? Login
+      }
+      "   "
+      .
+    }
+  }
+}
+
+'=========================================
+' Dashboard (Main Page)
+'=========================================
+salt "3. Dashboard - Список Ключів" {
+  {+
+    {/ <b>Auth Key Storage</b> | <&person> John Doe | [Logout] }
+    {T
+      + <b>Folders</b>
+      ++ <&folder> All Keys (45)
+      ++ <&folder> Work
+      +++ <&folder> AWS
+      +++ <&folder> GitHub
+      ++ <&folder> Personal
+      +++ <&folder> Banking
+      +++ <&folder> Social
+      ++ <&home> Favorites (12)
+      ++ <&trash> Trash (3)
+      -- 
+      ++ [+ New Folder]
+      |{
+        {
+          {/ <&magnifying-glass> Search keys... | [+ New Key] | <&grid-three-up> | <&list> }
+          .
+          {#
+            . <b>Name</b> | <b>Type</b> | <b>Folder</b> | <b>Tags</b> | <b>Last Used</b> | <b>Actions</b>
+            <&key> AWS Access Key | API Key | Work/AWS | aws, prod | 2 days ago | <&pencil> <&share> <&trash>
+            <&key> GitHub Token | Personal Token | Work/GitHub | github, dev | 5 days ago | <&pencil> <&share> <&trash>
+            <&key> Gmail Password | Password | Personal | gmail, email | 1 week ago | <&pencil> <&share> <&trash>
+            <&key> Database Prod | Database | Work/AWS | db, mysql | 3 days ago | <&pencil> <&share> <&trash>
+            <&key> Stripe API Key | API Key | Work | stripe, payment | 1 day ago | <&pencil> <&share> <&trash>
+          }
+          .
+          {/ Page 1 of 5 | < Prev | Next > }
+        }
+      }
+    }
+  }
+}
+
+'=========================================
+' Create/Edit Key Dialog
+'=========================================
+salt "4. Create/Edit Key Dialog" {
+  {^"Create New Key"
+    .
+    Key Name *
+    ^AWS Production Access Key^
+    .
+    Key Type *
+    ^API Key                    | v^
+    .
+    Key Value *
+    ^AKIA...                    ^
+    [ Generate Random ] [ Show/Hide ]
+    .
+    Folder
+    ^Work/AWS                   | v^
+    .
+    Tags (comma separated)
+    ^aws, production, important^
+    .
+    Description
+    {+
+      ^Production AWS access key for EC2 and S3.
+      .Do not share without approval.^
+    }
+    .
+    Additional Settings
+    [X] Add to favorites
+    [ ] Set expiration date
+    [ ] Require re-authentication
+    .
+    [ Cancel ] | [ Save Key ]
+  }
+}
+
+'=========================================
+' Sidebar with Folders (Expanded)
+'=========================================
+salt "5. Sidebar - Folders Tree" {
+  {T
+    + <b>My Vault</b>
+    .
+    ++ <&home> Dashboard
+    ++ <&key> All Keys (45)
+    .
+    + <b>Folders</b>
+    ++ <&folder> Work (25)
+    +++ <&folder> AWS (8)
+    ++++ <&folder> Production (5)
+    ++++ <&folder> Development (3)
+    +++ <&folder> GitHub (6)
+    +++ <&folder> Azure (4)
+    +++ <&folder> Databases (7)
+    ++ <&folder> Personal (15)
+    +++ <&folder> Banking (5)
+    +++ <&folder> Social Media (6)
+    +++ <&folder> Email (4)
+    ++ <&folder> Shared with me (5)
+    .
+    + <b>Quick Access</b>
+    ++ <&star> Favorites (12)
+    ++ <&clock> Recently Used (10)
+    ++ <&share> My Share Links (8)
+    .
+    + <b>Other</b>
+    ++ <&tag> Tags
+    ++ <&graph> Audit Log
+    ++ <&trash> Trash (3)
+    .
+    --
+    ++ [+ New Folder]
+    ++ [+ New Key]
+  }
+}
+
+'=========================================
+' Profile Page
+'=========================================
+salt "6. Profile Page" {
+  {+
+    {/ <b>Auth Key Storage</b> | <&person> John Doe | [Logout] }
+    {
+      {/ <&person> <b>Profile Settings</b> | <&shield> <b>Security</b> | <&wrench> <b>Preferences</b> }
+      .
+      == Profile Information ==
+      .
+      {
+        Full Name
+        ^John Doe                    ^
+        .
+        Email
+        ^john.doe@example.com        ^
+        .
+        Username
+        ^johndoe                     ^
+        .
+        [ Update Profile ]
+      }
+      .
+      == Change Password ==
+      .
+      {
+        Current Password
+        ^**********^
+        .
+        New Password
+        ^**********^
+        .
+        Confirm New Password
+        ^**********^
+        .
+        [ Change Password ]
+      }
+      .
+      == Two-Factor Authentication ==
+      .
+      {
+        Status: <color:green>Enabled</color>
+        .
+        [ Disable 2FA ] [ View Backup Codes ]
+      }
+      .
+      == Account Statistics ==
+      .
+      {#
+        . <b>Metric</b> | <b>Value</b>
+        Total Keys | 45
+        Folders | 12
+        Share Links | 8
+        Member Since | Jan 15, 2024
+      }
+      .
+      == Danger Zone ==
+      .
+      {
+        [ Export All Keys ] [ Delete Account ]
+      }
+    }
+  }
+}
+
+'=========================================
+' Share Link Dialog
+'=========================================
+salt "7. Share Link Dialog" {
+  {^"Share Key"
+    .
+    Key to Share
+    <b>AWS Production Access Key</b>
+    .
+    Share Options
+    .
+    Expires After
+    ^24 hours                   | v^
+    .
+    Max Access Count
+    ^1 time                     | v^
+    .
+    [X] Require password
+    Password for recipient
+    ^**********^
+    .
+    [X] Notify me when accessed
+    .
+    Generated Share Link:
+    {+
+      ^https://authkeys.app/share/a7f2e9d4-...^
+    }
+    [ Copy Link ] [ Send via Email ]
+    .
+    Active Share Links (3)
+    {#
+      . <b>Created</b> | <b>Expires</b> | <b>Accessed</b> | <b>Actions</b>
+      2h ago | 22h left | 0/1 | <&trash>
+      1d ago | 5d left | 2/5 | <&trash>
+      3d ago | Expired | 1/1 | <&trash>
+    }
+    .
+    [ Close ]
+  }
+}
+
+'=========================================
+' Key Details Modal
+'=========================================
+salt "8. Key Details View" {
+  {^"Key Details"
+    .
+    <b>AWS Production Access Key</b>
+    .
+    {#
+      . <b>Property</b> | <b>Value</b>
+      Type | API Key
+      Folder | Work/AWS/Production
+      Created | Jan 15, 2024 10:30 AM
+      Modified | Feb 10, 2024 3:45 PM
+      Last Used | 2 days ago
+      Tags | aws, production, important
+    }
+    .
+    <b>Key Value</b> (Click to reveal)
+    {+
+      ^••••••••••••••••••••^
+    }
+    [ Show ] [ Copy to Clipboard ]
+    .
+    <b>Description</b>
+    {+
+      ^Production AWS access key for EC2 and S3.
+      .Do not share without approval.
+      .Rotate every 90 days.^
+    }
+    .
+    <b>Security</b>
+    [X] Favorite
+    [ ] Archived
+    Password Strength: <color:green>Strong</color>
+    .
+    <b>Activity Log</b> (Last 5 actions)
+    {#
+      . <b>Date</b> | <b>Action</b> | <b>IP Address</b>
+      2 days ago | Viewed | 192.168.1.100
+      5 days ago | Modified | 192.168.1.100
+      1 week ago | Viewed | 192.168.1.105
+      2 weeks ago | Created | 192.168.1.100
+    }
+    .
+    [ Edit ] [ Share ] [ Delete ] [ Close ]
+  }
+}
+
+'=========================================
+' Tags Management
+'=========================================
+salt "9. Tags Management" {
+  {+
+    {/ <b>Auth Key Storage</b> | <&person> John Doe | [Logout] }
+    {
+      <b>Tags Management</b>
+      .
+      {/ <&magnifying-glass> Search tags... | [+ Create Tag] }
+      .
+      {#
+        . <b>Tag Name</b> | <b>Color</b> | <b>Keys Count</b> | <b>Actions</b>
+        aws | <color:blue>■</color> | 15 | <&pencil> <&trash>
+        production | <color:red>■</color> | 8 | <&pencil> <&trash>
+        development | <color:green>■</color> | 12 | <&pencil> <&trash>
+        important | <color:orange>■</color> | 6 | <&pencil> <&trash>
+        github | <color:purple>■</color> | 6 | <&pencil> <&trash>
+        database | <color:cyan>■</color> | 7 | <&pencil> <&trash>
+        email | <color:yellow>■</color> | 4 | <&pencil> <&trash>
+      }
+      .
+      <b>Tag Cloud</b>
+      .
+      {
+        <size:16><color:blue>aws</color></size>
+        <size:14><color:red>production</color></size>
+        <size:18><color:green>development</color></size>
+        <size:12><color:orange>important</color></size>
+        <size:14><color:purple>github</color></size>
+        <size:16><color:cyan>database</color></size>
+        <size:10><color:yellow>email</color></size>
+      }
+    }
+  }
+}
+
+'=========================================
+' Audit Log Page
+'=========================================
+salt "10. Audit Log Page" {
+  {+
+    {/ <b>Auth Key Storage</b> | <&person> John Doe | [Logout] }
+    {
+      <b>Audit Log</b>
+      .
+      {/ Date Range: ^2024-01-01^ to ^2024-02-28^ | Action: ^All | v^ | [Apply Filter] }
+      .
+      {#
+        . <b>Timestamp</b> | <b>Action</b> | <b>Resource</b> | <b>IP Address</b> | <b>Status</b>
+        2024-02-28 14:30 | KEY_VIEWED | AWS Prod Key | 192.168.1.100 | <color:green>Success</color>
+        2024-02-28 14:25 | KEY_CREATED | New API Key | 192.168.1.100 | <color:green>Success</color>
+        2024-02-28 14:20 | LOGIN | - | 192.168.1.100 | <color:green>Success</color>
+        2024-02-27 16:45 | KEY_UPDATED | GitHub Token | 192.168.1.105 | <color:green>Success</color>
+        2024-02-27 16:40 | SHARELINK_CREATED | AWS Prod Key | 192.168.1.105 | <color:green>Success</color>
+        2024-02-26 10:15 | LOGIN_FAILED | - | 203.0.113.42 | <color:red>Failed</color>
+        2024-02-26 10:10 | KEY_DELETED | Old Password | 192.168.1.100 | <color:green>Success</color>
+        2024-02-25 09:30 | FOLDER_CREATED | AWS/Dev | 192.168.1.100 | <color:green>Success</color>
+      }
+      .
+      {/ Showing 1-8 of 234 | < Prev | 1 | 2 | 3 | ... | 30 | Next > }
+      .
+      [ Export to CSV ] [ Export to PDF ]
+    }
+  }
+}
+
+@enduml

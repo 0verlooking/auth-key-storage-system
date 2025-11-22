@@ -1,0 +1,217 @@
+@startuml sequence-login
+!theme cerulean-outline
+title User Login Flow with JWT Authentication
+
+actor User
+participant "React\nFrontend" as Frontend
+participant "AuthController" as Controller
+participant "AuthService" as Service
+participant "UserRepository" as Repo
+participant "BCrypt" as BCrypt
+participant "JwtService" as JWT
+participant "Redis\nCache" as Redis
+participant "AuditLogService" as Audit
+participant "PostgreSQL\nDatabase" as DB
+
+User -> Frontend: Enter credentials\n(username/email, password)
+activate Frontend
+
+Frontend -> Frontend: Validate input
+note right
+  Basic validation:
+  - Non-empty fields
+  - Email format (if email)
+end note
+
+Frontend -> Controller: POST /api/v1/auth/login\n{username, password}
+activate Controller
+
+Controller -> Service: login(LoginRequest)
+activate Service
+
+Service -> Repo: findByUsernameOrEmail(username)
+activate Repo
+Repo -> DB: SELECT * FROM users\nWHERE username = ? OR email = ?
+activate DB
+DB --> Repo: User entity
+deactivate DB
+Repo --> Service: User
+deactivate Repo
+
+alt User not found
+    Service --> Controller: UnauthorizedException\n"Invalid credentials"
+    Controller --> Frontend: 401 Unauthorized
+    Frontend --> User: Show error message
+else User found
+
+    Service -> Service: Check account status
+    alt Account is locked
+        Service --> Controller: UnauthorizedException\n"Account is locked"
+        Controller --> Frontend: 423 Locked
+        Frontend --> User: "Account locked.\nContact support"
+    else Account is active
+
+        Service -> BCrypt: matches(rawPassword, encodedPassword)
+        activate BCrypt
+        BCrypt --> Service: boolean result
+        deactivate BCrypt
+
+        alt Password incorrect
+            Service -> Service: incrementFailedLoginAttempts()
+            note right
+              failedAttempts++
+              if (failedAttempts >= 5) {
+                  accountLocked = true
+              }
+            end note
+
+            Service -> Repo: save(user)
+            activate Repo
+            Repo -> DB: UPDATE users SET\nfailed_login_attempts = ?,\naccount_locked = ?
+            activate DB
+            DB --> Repo: Success
+            deactivate DB
+            Repo --> Service: Updated user
+            deactivate Repo
+
+            Service -> Audit: logFailedLogin(userId, ipAddress)
+            activate Audit
+            Audit -> DB: INSERT INTO audit_logs
+            activate DB
+            DB --> Audit: Success
+            deactivate DB
+            deactivate Audit
+
+            Service --> Controller: UnauthorizedException
+            Controller --> Frontend: 401 Unauthorized
+            Frontend --> User: "Invalid credentials"
+
+        else Password correct
+
+            Service -> Service: resetFailedLoginAttempts()
+            note right
+              failedAttempts = 0
+              accountLocked = false
+            end note
+
+            Service -> Service: Update login info\n- lastLoginAt = now\n- lastLoginIp = request.ip
+
+            Service -> Repo: save(user)
+            activate Repo
+            Repo -> DB: UPDATE users SET\nlast_login_at = ?,\nlast_login_ip = ?,\nfailed_login_attempts = 0
+            activate DB
+            DB --> Repo: Success
+            deactivate DB
+            Repo --> Service: Updated user
+            deactivate Repo
+
+            Service -> JWT: generateAccessToken(userId, role)
+            activate JWT
+            JWT -> JWT: Create claims\n- subject: userId\n- role: authorities\n- expiry: 15 minutes
+            JWT --> Service: accessToken (JWT string)
+            deactivate JWT
+            note right
+              Access Token (JWT):
+              Header: {alg: HS512, typ: JWT}
+              Payload: {
+                sub: "userId",
+                role: "ROLE_USER",
+                iat: timestamp,
+                exp: timestamp + 15min
+              }
+              Signature: HMACSHA512(...)
+            end note
+
+            Service -> JWT: generateRefreshToken(userId)
+            activate JWT
+            JWT -> JWT: Create claims\n- subject: userId\n- expiry: 7 days
+            JWT --> Service: refreshToken (JWT string)
+            deactivate JWT
+
+            Service -> Redis: storeRefreshToken(userId, refreshToken, ttl)
+            activate Redis
+            Redis -> Redis: SET refresh_token:{userId}\nVALUE refreshToken\nEX 604800 (7 days)
+            Redis --> Service: OK
+            deactivate Redis
+            note right
+              Redis storage:
+              Key: "refresh_token:123"
+              Value: "eyJhbGc..."
+              TTL: 7 days (604800 sec)
+            end note
+
+            Service -> Audit: logSuccessfulLogin(userId, ipAddress, userAgent)
+            activate Audit
+            Audit -> DB: INSERT INTO audit_logs\n(user_id, action, ip_address, ...)
+            activate DB
+            DB --> Audit: Success
+            deactivate DB
+            deactivate Audit
+
+            Service -> Service: Build AuthResponse\n- accessToken\n- refreshToken\n- user info (without password)
+
+            Service --> Controller: AuthResponse
+            deactivate Service
+
+            Controller --> Frontend: 200 OK\nAuthResponse
+            deactivate Controller
+
+            Frontend -> Frontend: Store tokens
+            note right
+              localStorage.setItem('accessToken', response.accessToken)
+              localStorage.setItem('refreshToken', response.refreshToken)
+              localStorage.setItem('user', JSON.stringify(response.user))
+            end note
+
+            Frontend -> Frontend: Set Authorization header\nfor future requests
+            note right
+              axios.defaults.headers.common['Authorization']
+                = 'Bearer ' + accessToken
+            end note
+
+            Frontend --> User: Redirect to Dashboard
+            deactivate Frontend
+
+        end
+    end
+end
+
+== Authenticated Request Flow ==
+
+User -> Frontend: Navigate to Dashboard
+activate Frontend
+
+Frontend -> Controller: GET /api/v1/auth-keys\nHeader: Authorization: Bearer {accessToken}
+activate Controller
+
+Controller -> Controller: JwtAuthenticationFilter\nvalidate token
+
+alt Token is valid
+    Controller -> Controller: Extract userId from token\nSet Authentication context
+    Controller -> Service: getAllAuthKeys(userId, pageable)
+    activate Service
+    Service -> Repo: findByUserId(userId, pageable)
+    activate Repo
+    Repo -> DB: SELECT * FROM auth_keys\nWHERE user_id = ?
+    activate DB
+    DB --> Repo: List of AuthKeys
+    deactivate DB
+    Repo --> Service: Page<AuthKey>
+    deactivate Repo
+    Service --> Controller: Page<AuthKeyResponse>
+    deactivate Service
+    Controller --> Frontend: 200 OK with data
+    deactivate Controller
+    Frontend --> User: Display auth keys
+    deactivate Frontend
+
+else Token is expired
+    Controller --> Frontend: 401 Unauthorized\n"Token expired"
+    Frontend -> Frontend: Use refresh token\nto get new access token
+    note right
+      See Token Refresh Flow
+      POST /api/v1/auth/refresh
+    end note
+end
+
+@enduml

@@ -1,0 +1,158 @@
+@startuml sequence-register
+!theme cerulean-outline
+title User Registration Flow
+
+actor User
+participant "React\nFrontend" as Frontend
+participant "AuthController" as Controller
+participant "AuthService" as Service
+participant "UserRepository" as Repo
+participant "BCrypt" as BCrypt
+participant "EmailService" as Email
+participant "PostgreSQL\nDatabase" as DB
+
+User -> Frontend: Fill registration form\n(username, email, password)
+activate Frontend
+
+Frontend -> Frontend: Validate input\n- Email format\n- Password strength\n- Required fields
+note right
+  Client-side validation:
+  - Username: 3-50 chars
+  - Email: valid format
+  - Password: min 8 chars
+end note
+
+Frontend -> Controller: POST /api/v1/auth/register\n{username, email, password}
+activate Controller
+
+Controller -> Service: register(RegisterRequest)
+activate Service
+
+Service -> Repo: existsByUsername(username)
+activate Repo
+Repo -> DB: SELECT COUNT(*) FROM users\nWHERE username = ?
+activate DB
+DB --> Repo: 0 (not exists)
+deactivate DB
+Repo --> Service: false
+deactivate Repo
+
+Service -> Repo: existsByEmail(email)
+activate Repo
+Repo -> DB: SELECT COUNT(*) FROM users\nWHERE email = ?
+activate DB
+DB --> Repo: 0 (not exists)
+deactivate DB
+Repo --> Service: false
+deactivate Repo
+
+note right of Service
+  If user exists:
+  throw BadRequestException
+  "Username/Email already exists"
+end note
+
+Service -> BCrypt: encode(password)
+activate BCrypt
+BCrypt --> Service: hashedPassword
+deactivate BCrypt
+note right
+  BCrypt with salt rounds = 10
+  Example output:
+  $2a$10$N9qo8uLOickgx2ZMRZoMye...
+end note
+
+Service -> Service: Create User entity\n- role = USER\n- isEmailVerified = false\n- accountLocked = false
+
+Service -> Service: generateEmailVerificationToken()
+note right
+  Generate UUID token
+  Set expiry = now + 24 hours
+end note
+
+Service -> Repo: save(user)
+activate Repo
+Repo -> DB: INSERT INTO users VALUES (...)
+activate DB
+DB --> Repo: User with ID
+deactivate DB
+Repo --> Service: Saved User
+deactivate Repo
+
+Service -> Email: sendVerificationEmail(user, token)
+activate Email
+Email -> Email: Build email template\nwith verification link
+Email --> Service: Email sent (async)
+deactivate Email
+note right
+  Verification URL:
+  http://localhost:3000/verify?token={token}
+
+  Email expires in 24 hours
+end note
+
+Service -> Service: Create AuditLog\n- action = "USER_REGISTERED"\n- resourceType = "USER"
+
+Service -> Service: Generate JWT tokens\n- Access Token (15 min)\n- Refresh Token (7 days)
+
+Service --> Controller: AuthResponse\n{accessToken, refreshToken, user}
+deactivate Service
+
+Controller --> Frontend: 201 CREATED\nAuthResponse
+deactivate Controller
+
+Frontend -> Frontend: Store tokens in\nLocalStorage
+note right
+  localStorage.setItem('accessToken', ...)
+  localStorage.setItem('refreshToken', ...)
+end note
+
+Frontend --> User: Show success message:\n"Registration successful!\nPlease check your email\nto verify your account"
+deactivate Frontend
+
+== Email Verification (Separate Flow) ==
+
+User -> Frontend: Click verification link\nin email
+activate Frontend
+
+Frontend -> Controller: GET /api/v1/auth/verify-email?token={token}
+activate Controller
+
+Controller -> Service: verifyEmailToken(token)
+activate Service
+
+Service -> Repo: findByEmailVerificationToken(token)
+activate Repo
+Repo -> DB: SELECT * FROM users\nWHERE email_verification_token = ?
+activate DB
+DB --> Repo: User
+deactivate DB
+Repo --> Service: User
+deactivate Repo
+
+Service -> Service: Check token expiry
+alt Token is valid
+    Service -> Service: Set isEmailVerified = true\nClear verification token
+    Service -> Repo: save(user)
+    activate Repo
+    Repo -> DB: UPDATE users SET is_email_verified = true
+    activate DB
+    DB --> Repo: Success
+    deactivate DB
+    Repo --> Service: Updated User
+    deactivate Repo
+
+    Service --> Controller: Success
+    Controller --> Frontend: 200 OK\n"Email verified"
+else Token expired or invalid
+    Service --> Controller: BadRequestException
+    Controller --> Frontend: 400 Bad Request\n"Invalid or expired token"
+end
+
+deactivate Service
+deactivate Controller
+
+Frontend --> User: Show verification result
+deactivate Frontend
+
+@enduml

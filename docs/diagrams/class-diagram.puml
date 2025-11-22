@@ -1,0 +1,376 @@
+@startuml class-diagram
+!theme plain
+title Class Діаграма - Основні Java Класи
+
+' Entity Classes
+package "com.authkey.storage.entity" {
+  
+  abstract class BaseEntity {
+    # Long id
+    # LocalDateTime createdAt
+    # LocalDateTime updatedAt
+    # LocalDateTime deletedAt
+    # Boolean isDeleted
+    --
+    + softDelete() : void
+    + restore() : void
+  }
+
+  class User {
+    - String username
+    - String email
+    - String password
+    - String firstName
+    - String lastName
+    - UserRole role
+    - Boolean isEmailVerified
+    - String emailVerificationToken
+    - LocalDateTime emailVerificationTokenExpiresAt
+    - String passwordResetToken
+    - LocalDateTime passwordResetTokenExpiresAt
+    - Boolean isTwoFactorEnabled
+    - String twoFactorSecret
+    - Boolean accountLocked
+    - Integer failedLoginAttempts
+    - LocalDateTime lastLoginAt
+    - String lastLoginIp
+    --
+    + incrementFailedLoginAttempts() : void
+    + resetFailedLoginAttempts() : void
+    + getFullName() : String
+    + getAuthorities() : Collection<GrantedAuthority>
+  }
+
+  class AuthKey {
+    - String title
+    - String description
+    - AuthKeyType keyType
+    - String username
+    - String email
+    - String encryptedValue
+    - String encryptionIv
+    - String encryptionSalt
+    - String url
+    - String notes
+    - Boolean isFavorite
+    - LocalDateTime lastAccessedAt
+    - Integer accessCount
+    - LocalDateTime expiresAt
+    - Integer passwordStrength
+    --
+    + incrementAccessCount() : void
+    + isExpired() : boolean
+    + addTag(Tag) : void
+    + removeTag(Tag) : void
+  }
+
+  class Folder {
+    - String name
+    - String description
+    - String color
+    - String icon
+    --
+    + addSubFolder(Folder) : void
+    + removeSubFolder(Folder) : void
+    + addAuthKey(AuthKey) : void
+    + removeAuthKey(AuthKey) : void
+    + isRootFolder() : boolean
+    + getDepth() : int
+  }
+
+  class Tag {
+    - String name
+    - String color
+  }
+
+  class ShareLink {
+    - String shareToken
+    - String encryptedKey
+    - String accessPasswordHash
+    - Integer maxAccessCount
+    - Integer currentAccessCount
+    - LocalDateTime expiresAt
+    - Boolean isActive
+    - Boolean allowDownload
+    --
+    + isExpired() : boolean
+    + isMaxAccessReached() : boolean
+    + canAccess() : boolean
+    + incrementAccessCount() : void
+  }
+
+  class AuditLog {
+    - String action
+    - String resourceType
+    - Long resourceId
+    - String details
+    - String ipAddress
+    - String userAgent
+    - LocalDateTime timestamp
+    - Boolean isSuccessful
+    - String errorMessage
+  }
+
+  BaseEntity <|-- User
+  BaseEntity <|-- AuthKey
+  BaseEntity <|-- Folder
+  BaseEntity <|-- Tag
+  BaseEntity <|-- ShareLink
+  BaseEntity <|-- AuditLog
+
+  User "1" *-- "many" AuthKey
+  User "1" *-- "many" Folder
+  User "1" *-- "many" Tag
+  User "1" *-- "many" AuditLog
+  
+  Folder "1" *-- "many" AuthKey
+  Folder "1" *-- "many" Folder : subfolders
+  
+  AuthKey "many" -- "many" Tag
+  AuthKey "1" *-- "many" ShareLink
+}
+
+' Repository Layer
+package "com.authkey.storage.repository" {
+  
+  interface UserRepository {
+    + findByUsername(String) : Optional<User>
+    + findByEmail(String) : Optional<User>
+    + existsByUsername(String) : boolean
+    + existsByEmail(String) : boolean
+  }
+
+  interface AuthKeyRepository {
+    + findByUserId(Long, Pageable) : Page<AuthKey>
+    + findByUserIdAndFolderId(Long, Long, Pageable) : Page<AuthKey>
+    + findByUserIdAndIsFavoriteTrue(Long, Pageable) : Page<AuthKey>
+    + searchByUserIdAndQuery(Long, String, Pageable) : Page<AuthKey>
+  }
+
+  interface FolderRepository {
+    + findByUserId(Long) : List<Folder>
+    + findByUserIdAndParentFolderIsNull(Long) : List<Folder>
+  }
+
+  interface TagRepository {
+    + findByUserId(Long) : List<Tag>
+    + findByUserIdAndName(Long, String) : Optional<Tag>
+  }
+
+  interface ShareLinkRepository {
+    + findByShareToken(String) : Optional<ShareLink>
+    + findByAuthKeyId(Long) : List<ShareLink>
+  }
+
+  interface AuditLogRepository {
+    + findByUserId(Long, Pageable) : Page<AuditLog>
+    + findByUserIdAndAction(Long, String, Pageable) : Page<AuditLog>
+  }
+
+  UserRepository -- User
+  AuthKeyRepository -- AuthKey
+  FolderRepository -- Folder
+  TagRepository -- Tag
+  ShareLinkRepository -- ShareLink
+  AuditLogRepository -- AuditLog
+}
+
+' Service Layer
+package "com.authkey.storage.service" {
+  
+  interface AuthService {
+    + register(RegisterRequest) : AuthResponse
+    + login(LoginRequest) : AuthResponse
+    + logout(Long) : void
+    + refreshToken(String) : AuthResponse
+    + forgotPassword(ForgotPasswordRequest) : void
+    + resetPassword(ResetPasswordRequest) : void
+    + verifyEmailToken(String) : void
+  }
+
+  interface AuthKeyService {
+    + createAuthKey(Long, CreateAuthKeyRequest) : AuthKeyResponse
+    + getAllAuthKeys(Long, Pageable) : Page<AuthKeyResponse>
+    + getAuthKeyById(Long, Long) : AuthKeyResponse
+    + updateAuthKey(Long, Long, UpdateAuthKeyRequest) : AuthKeyResponse
+    + deleteAuthKey(Long, Long) : void
+    + toggleFavorite(Long, Long) : AuthKeyResponse
+    + searchAuthKeys(Long, String, Pageable) : Page<AuthKeyResponse>
+  }
+
+  interface FolderService {
+    + createFolder(Long, CreateFolderRequest) : FolderResponse
+    + getAllFolders(Long) : List<FolderResponse>
+    + updateFolder(Long, Long, UpdateFolderRequest) : FolderResponse
+    + deleteFolder(Long, Long) : void
+  }
+
+  interface TagService {
+    + createTag(Long, CreateTagRequest) : TagResponse
+    + getAllTags(Long) : List<TagResponse>
+    + updateTag(Long, Long, UpdateTagRequest) : TagResponse
+    + deleteTag(Long, Long) : void
+  }
+
+  interface ShareLinkService {
+    + createShareLink(Long, CreateShareLinkRequest) : ShareLinkResponse
+    + getShareLinkByToken(String, String) : ShareLinkResponse
+    + revokeShareLink(Long, Long) : void
+  }
+
+  interface AuditLogService {
+    + log(Long, String, String, Long, String) : void
+    + getUserAuditLogs(Long, Pageable) : Page<AuditLogResponse>
+  }
+
+  class AuthServiceImpl
+  class AuthKeyServiceImpl
+  class FolderServiceImpl
+  class TagServiceImpl
+  class ShareLinkServiceImpl
+  class AuditLogServiceImpl
+
+  AuthService <|.. AuthServiceImpl
+  AuthKeyService <|.. AuthKeyServiceImpl
+  FolderService <|.. FolderServiceImpl
+  TagService <|.. TagServiceImpl
+  ShareLinkService <|.. ShareLinkServiceImpl
+  AuditLogService <|.. AuditLogServiceImpl
+
+  AuthServiceImpl --> UserRepository
+  AuthKeyServiceImpl --> AuthKeyRepository
+  FolderServiceImpl --> FolderRepository
+  TagServiceImpl --> TagRepository
+  ShareLinkServiceImpl --> ShareLinkRepository
+  AuditLogServiceImpl --> AuditLogRepository
+}
+
+' Controller Layer
+package "com.authkey.storage.controller" {
+  
+  class AuthController {
+    - AuthService authService
+    - UserService userService
+    --
+    + register(RegisterRequest) : ResponseEntity<AuthResponse>
+    + login(LoginRequest) : ResponseEntity<AuthResponse>
+    + logout(Authentication) : ResponseEntity<MessageResponse>
+    + refreshToken(RefreshTokenRequest) : ResponseEntity<AuthResponse>
+    + forgotPassword(ForgotPasswordRequest) : ResponseEntity<MessageResponse>
+    + resetPassword(ResetPasswordRequest) : ResponseEntity<MessageResponse>
+    + verifyEmail(String) : ResponseEntity<MessageResponse>
+  }
+
+  class AuthKeyController {
+    - AuthKeyService authKeyService
+    --
+    + createAuthKey(Authentication, CreateAuthKeyRequest) : ResponseEntity<AuthKeyResponse>
+    + getAllAuthKeys(Authentication, Pageable) : ResponseEntity<Page<AuthKeyResponse>>
+    + getAuthKeyById(Authentication, Long) : ResponseEntity<AuthKeyResponse>
+    + updateAuthKey(Authentication, Long, UpdateAuthKeyRequest) : ResponseEntity<AuthKeyResponse>
+    + deleteAuthKey(Authentication, Long) : ResponseEntity<MessageResponse>
+    + toggleFavorite(Authentication, Long) : ResponseEntity<AuthKeyResponse>
+    + searchAuthKeys(Authentication, String, Pageable) : ResponseEntity<Page<AuthKeyResponse>>
+  }
+
+  class FolderController {
+    - FolderService folderService
+    --
+    + createFolder(Authentication, CreateFolderRequest) : ResponseEntity<FolderResponse>
+    + getAllFolders(Authentication) : ResponseEntity<List<FolderResponse>>
+    + updateFolder(Authentication, Long, UpdateFolderRequest) : ResponseEntity<FolderResponse>
+    + deleteFolder(Authentication, Long) : ResponseEntity<MessageResponse>
+  }
+
+  class TagController {
+    - TagService tagService
+    --
+    + createTag(Authentication, CreateTagRequest) : ResponseEntity<TagResponse>
+    + getAllTags(Authentication) : ResponseEntity<List<TagResponse>>
+    + updateTag(Authentication, Long, UpdateTagRequest) : ResponseEntity<TagResponse>
+    + deleteTag(Authentication, Long) : ResponseEntity<MessageResponse>
+  }
+
+  class ShareLinkController {
+    - ShareLinkService shareLinkService
+    --
+    + createShareLink(Authentication, CreateShareLinkRequest) : ResponseEntity<ShareLinkResponse>
+    + getShareLinkByToken(String, String) : ResponseEntity<ShareLinkResponse>
+    + revokeShareLink(Authentication, Long) : ResponseEntity<MessageResponse>
+  }
+
+  class AuditLogController {
+    - AuditLogService auditLogService
+    --
+    + getUserAuditLogs(Authentication, Pageable) : ResponseEntity<Page<AuditLogResponse>>
+  }
+
+  AuthController --> AuthService
+  AuthKeyController --> AuthKeyService
+  FolderController --> FolderService
+  TagController --> TagService
+  ShareLinkController --> ShareLinkService
+  AuditLogController --> AuditLogService
+}
+
+' Security Layer
+package "com.authkey.storage.security" {
+  
+  class JwtService {
+    - String jwtSecret
+    - long jwtExpirationMs
+    - long refreshTokenExpirationMs
+    --
+    + generateAccessToken(Long) : String
+    + generateRefreshToken(Long) : String
+    + getUserIdFromToken(String) : Long
+    + validateToken(String) : boolean
+  }
+
+  class JwtAuthenticationFilter {
+    - JwtService jwtService
+    - CustomUserDetailsService userDetailsService
+    --
+    # doFilterInternal(HttpServletRequest, HttpServletResponse, FilterChain) : void
+  }
+
+  class CustomUserDetailsService {
+    - UserRepository userRepository
+    --
+    + loadUserByUsername(String) : UserDetails
+  }
+
+  class SecurityConfig {
+    --
+    + securityFilterChain(HttpSecurity) : SecurityFilterChain
+    + passwordEncoder() : PasswordEncoder
+    + authenticationManager(AuthenticationConfiguration) : AuthenticationManager
+  }
+
+  JwtAuthenticationFilter --> JwtService
+  JwtAuthenticationFilter --> CustomUserDetailsService
+  CustomUserDetailsService --> UserRepository
+}
+
+note right of BaseEntity
+  **Template Method Pattern**
+  Provides common auditing fields
+  and soft-delete functionality
+  for all entities
+end note
+
+note right of AuthKeyServiceImpl
+  **Service Pattern**
+  Business logic layer
+  Implements Repository Pattern
+  for data access
+end note
+
+note right of JwtService
+  **Singleton Pattern**
+  Spring Bean @Service
+  Manages JWT tokens
+  for authentication
+end note
+
+@enduml
