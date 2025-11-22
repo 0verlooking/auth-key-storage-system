@@ -20,7 +20,7 @@ COPY package*.json ./
 # Встановлення залежностей
 # --legacy-peer-deps: для вирішення конфліктів залежностей
 # --ignore-scripts: для безпеки
-RUN npm ci --legacy-peer-deps --ignore-scripts
+RUN npm install --legacy-peer-deps --ignore-scripts
 
 # Копіювання вихідного коду
 COPY . .
