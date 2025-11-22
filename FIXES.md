@@ -8,15 +8,21 @@
 
 ## 📝 Резюме
 
-Всього було виправлено **7 критичних помилок** компіляції та конфігурації:
+Всього було виправлено **10 критичних помилок** компіляції та конфігурації:
 
+### Backend (Java):
 1. ✅ JWT Service - deprecated API
 2. ✅ Auth Controller - неправильний метод DTO
 3. ✅ Tag Controller - неіснуюче поле в builder
 4. ✅ Frontend Dockerfile - npm ci без package-lock.json
 5. ✅ User Repository - параметри Spring Data JPA
 6. ✅ Auth Service Implementation - виклик методу з неправильними параметрами
-7. ✅ API порт конфігурації - невідповідність між frontend та backend
+
+### Frontend (JavaScript/Config):
+7. ✅ API порт конфігурації - .env та vite.config.js
+8. ✅ **КРИТИЧНО** - constants.js hardcoded порт 5000
+9. ✅ **КРИТИЧНО** - index.html preconnect до порту 5000
+10. ✅ **КРИТИЧНО** - index.html CSP policy блокує порт 8080
 
 ---
 
@@ -253,6 +259,80 @@ proxy: {
 
 ---
 
+### 8. constants.js - Hardcoded API Port (КРИТИЧНО!)
+
+**Файл:** `/frontend/src/config/constants.js:2`
+
+**Проблема:**
+```
+Frontend продовжував підключатися до http://localhost:5000 навіть після зміни .env
+```
+
+**Причина:** Fallback значення в константах мало hardcoded порт 5000
+
+**Виправлення:**
+```javascript
+// До:
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+// Після:
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+```
+
+**Примітка:** Це була ГОЛОВНА причина проблеми! Навіть з правильним .env, код використовував fallback значення.
+
+---
+
+### 9. index.html - Preconnect (КРИТИЧНО!)
+
+**Файл:** `/frontend/index.html:11`
+
+**Проблема:**
+```
+<link rel="preconnect" href="http://localhost:5000" />
+```
+
+**Причина:** Браузер намагався передзавантажити з'єднання до неправильного порту
+
+**Виправлення:**
+```html
+<!-- До: -->
+<link rel="preconnect" href="http://localhost:5000" />
+
+<!-- Після: -->
+<link rel="preconnect" href="http://localhost:8080" />
+```
+
+---
+
+### 10. index.html - Content Security Policy (КРИТИЧНО!)
+
+**Файл:** `/frontend/index.html:15`
+
+**Проблема:**
+```html
+connect-src 'self' http://localhost:5000;
+```
+
+**Причина:** CSP БЛОКУВАВ всі підключення до порту 8080! Це найкритичніша проблема!
+
+**Виправлення:**
+```html
+<!-- До: -->
+<meta http-equiv="Content-Security-Policy"
+      content="...connect-src 'self' http://localhost:5000;" />
+
+<!-- Після: -->
+<meta http-equiv="Content-Security-Policy"
+      content="...connect-src 'self' http://localhost:8080;" />
+```
+
+**Примітка:** Content Security Policy (CSP) - це механізм безпеки браузера. Якщо CSP не дозволяє підключення до певного порту, то ЖОДНІ запити до цього порту не пройдуть, навіть якщо код правильний!
+
+**Commit:** `🔧 КРИТИЧНЕ ВИПРАВЛЕННЯ: Заміна всіх портів 5000 на 8080`
+
+---
+
 ## 🚀 Тестування Виправлень
 
 ### Перевірка Backend Компіляції
@@ -286,22 +366,35 @@ docker compose build
 
 ## 📊 Статистика
 
-- **Всього виправлено помилок:** 7
-- **Змінених файлів:** 8
-- **Commits:** 7
-- **Часова мітка:** 2025-11-22T22:44:00Z
+- **Всього виправлено помилок:** 10 (6 Backend + 4 Frontend)
+- **Змінених файлів:** 14
+- **Commits:** 9
+- **Критичні виправлення:** 3 (constants.js, index.html preconnect, CSP)
+- **Часова мітка:** 2025-11-22T23:15:00Z
 
 ---
 
 ## ✅ Перевірочний Список
 
+### Backend:
 - [x] Backend компілюється без помилок
-- [x] Frontend збирається без помилок
-- [x] Docker образи будуються коректно
-- [x] API порти налаштовані правильно (8080)
 - [x] JWT сервіс використовує актуальне API
 - [x] Repository методи мають правильні сигнатури
 - [x] DTOs використовуються коректно
+- [x] AuthServiceImpl викликає методи з правильними параметрами
+
+### Frontend:
+- [x] Frontend збирається без помилок
+- [x] .env має правильний порт (8080)
+- [x] vite.config.js має правильний fallback (8080)
+- [x] constants.js має правильний fallback (8080)
+- [x] index.html preconnect вказує на правильний порт (8080)
+- [x] Content Security Policy дозволяє підключення до 8080
+- [x] Вся документація оновлена (5000 → 8080)
+
+### Загальне:
+- [x] API порти налаштовані правильно (8080)
+- [x] Docker образи будуються коректно
 - [x] Всі зміни закомічені та відправлені в репозиторій
 
 ---
