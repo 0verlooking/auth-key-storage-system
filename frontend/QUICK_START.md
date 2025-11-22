@@ -39,7 +39,7 @@ nano .env
 
 Default configuration:
 ```env
-VITE_API_URL=http://localhost:5000
+VITE_API_URL=http://localhost:8080
 VITE_APP_NAME=Auth Key Storage System
 VITE_PBKDF2_ITERATIONS=100000
 VITE_SESSION_TIMEOUT=3600000
@@ -119,7 +119,7 @@ PORT=3001 npm run dev
 ```
 
 ### API Connection Failed
-- Ensure backend is running on port 5000
+- Ensure backend is running on port 8080
 - Check CORS configuration
 - Verify `VITE_API_URL` in `.env`
 

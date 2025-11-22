@@ -20,7 +20,7 @@ cp .env.example .env
 Edit `.env` and set your API URL:
 
 ```env
-VITE_API_URL=http://localhost:5000
+VITE_API_URL=http://localhost:8080
 ```
 
 ### 3. Start Development Server

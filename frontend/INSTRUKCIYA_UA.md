@@ -22,7 +22,7 @@ nano .env
 ```
 
 Основні налаштування:
-- `VITE_API_URL` - адреса backend API (за замовчуванням http://localhost:5000)
+- `VITE_API_URL` - адреса backend API (за замовчуванням http://localhost:8080)
 - `VITE_PBKDF2_ITERATIONS` - кількість ітерацій для шифрування (100000)
 - `VITE_SESSION_TIMEOUT` - час сесії (1 година)
 

@@ -45,7 +45,7 @@ cp .env.example .env
 
 3. Update `.env` with your configuration:
 ```env
-VITE_API_URL=http://localhost:5000
+VITE_API_URL=http://localhost:8080
 ```
 
 ### Development
@@ -117,7 +117,7 @@ All sensitive data is encrypted on the client before transmission:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `VITE_API_URL` | Backend API URL | `http://localhost:5000` |
+| `VITE_API_URL` | Backend API URL | `http://localhost:8080` |
 | `VITE_PBKDF2_ITERATIONS` | PBKDF2 iterations | `100000` |
 | `VITE_SESSION_TIMEOUT` | Session timeout (ms) | `3600000` |
 | `VITE_ITEMS_PER_PAGE` | Pagination limit | `20` |
