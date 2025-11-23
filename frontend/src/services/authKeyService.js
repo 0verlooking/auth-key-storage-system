@@ -49,22 +49,24 @@ class AuthKeyService {
         masterPassword
       );
 
-      // Map frontend fields to backend DTO structure
+      // Map frontend form fields to backend DTO structure
+      // Form uses: name, type, folder_id, tag_ids
+      // Backend expects: title, keyType, folderId, tagIds
       const requestData = {
-        title: keyData.title,
+        title: keyData.name || keyData.title, // Form uses 'name'
         description: keyData.description,
-        keyType: keyData.keyType,
-        username: keyData.username, // Plain text
-        email: keyData.email, // Plain text
+        keyType: keyData.type || keyData.keyType, // Form uses 'type'
+        username: keyData.username || null, // Plain text
+        email: keyData.email || null, // Plain text
         encryptedValue: encryptedFields.encryptedValue,
         encryptionIv: encryptedFields.encryptionIv,
         encryptionSalt: encryptedFields.encryptionSalt,
-        url: keyData.url,
-        notes: keyData.notes, // Plain text
-        folderId: keyData.folderId,
-        tagIds: keyData.tagIds,
-        expiresAt: keyData.expiresAt,
-        passwordStrength: keyData.passwordStrength,
+        url: keyData.url || null,
+        notes: keyData.notes || null, // Plain text
+        folderId: keyData.folder_id || keyData.folderId || null, // Form uses 'folder_id'
+        tagIds: keyData.tag_ids || keyData.tagIds || null, // Form uses 'tag_ids'
+        expiresAt: keyData.expiresAt || null,
+        passwordStrength: keyData.passwordStrength || null,
       };
 
       const response = await apiClient.post(API_ENDPOINTS.AUTH_KEYS, requestData);
@@ -84,19 +86,19 @@ class AuthKeyService {
         throw new Error('Master password not found. Please log in again.');
       }
 
-      // Build update request
+      // Map frontend form fields to backend DTO structure
       const requestData = {
-        title: keyData.title,
+        title: keyData.name || keyData.title,
         description: keyData.description,
-        keyType: keyData.keyType,
-        username: keyData.username,
-        email: keyData.email,
-        url: keyData.url,
-        notes: keyData.notes,
-        folderId: keyData.folderId,
-        tagIds: keyData.tagIds,
-        expiresAt: keyData.expiresAt,
-        passwordStrength: keyData.passwordStrength,
+        keyType: keyData.type || keyData.keyType,
+        username: keyData.username || null,
+        email: keyData.email || null,
+        url: keyData.url || null,
+        notes: keyData.notes || null,
+        folderId: keyData.folder_id || keyData.folderId || null,
+        tagIds: keyData.tag_ids || keyData.tagIds || null,
+        expiresAt: keyData.expiresAt || null,
+        passwordStrength: keyData.passwordStrength || null,
       };
 
       // If value is being updated, encrypt it with separate fields
