@@ -26,11 +26,11 @@ class AuthService {
         lastName,
       });
 
-      const { token, refresh_token, user } = response.data;
+      const { access_token, refresh_token, user } = response.data;
 
       // Store auth data
       storageService.setSession({
-        token,
+        token: access_token,
         refreshToken: refresh_token,
         user,
       });
@@ -38,7 +38,7 @@ class AuthService {
       // Store master password temporarily in session
       storageService.setMasterKey(master_password);
 
-      return { user, token };
+      return { user, token: access_token };
     } catch (error) {
       throw error;
     }
@@ -60,11 +60,11 @@ class AuthService {
         password: password_hash,
       });
 
-      const { token, refresh_token, user } = response.data;
+      const { access_token, refresh_token, user } = response.data;
 
       // Store auth data
       storageService.setSession({
-        token,
+        token: access_token,
         refreshToken: refresh_token,
         user,
       });
@@ -78,7 +78,7 @@ class AuthService {
       // Update last activity
       storageService.updateLastActivity();
 
-      return { user, token };
+      return { user, token: access_token };
     } catch (error) {
       throw error;
     }
@@ -114,13 +114,13 @@ class AuthService {
         refresh_token: refreshToken,
       });
 
-      const { token, refresh_token } = response.data;
+      const { access_token, refresh_token } = response.data;
 
       // Update stored tokens
-      storageService.setAuthToken(token);
+      storageService.setAuthToken(access_token);
       storageService.setRefreshToken(refresh_token);
 
-      return token;
+      return access_token;
     } catch (error) {
       // If refresh fails, clear auth and throw error
       storageService.clearAuth();
