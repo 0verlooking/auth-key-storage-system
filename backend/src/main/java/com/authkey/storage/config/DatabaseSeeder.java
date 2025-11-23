@@ -103,10 +103,10 @@ public class DatabaseSeeder {
                     .firstName(firstName)
                     .lastName(lastName)
                     .role(role)
-                    .isEmailVerified(true)
+                    .emailVerified(true)
                     .accountLocked(false)
                     .failedLoginAttempts(0)
-                    .isDeleted(false)
+                    .deleted(false)
                     .build();
 
             userRepository.save(user);
