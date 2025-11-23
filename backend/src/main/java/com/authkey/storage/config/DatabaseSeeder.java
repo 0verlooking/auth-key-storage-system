@@ -103,11 +103,13 @@ public class DatabaseSeeder {
                     .firstName(firstName)
                     .lastName(lastName)
                     .role(role)
-                    .emailVerified(true)
                     .accountLocked(false)
                     .failedLoginAttempts(0)
-                    .deleted(false)
                     .build();
+
+            // Set fields manually (isEmailVerified from User, isDeleted from BaseEntity)
+            user.setIsEmailVerified(true);
+            user.setIsDeleted(false);
 
             userRepository.save(user);
             log.info("✅ Created user: {} ({})", email, role);
