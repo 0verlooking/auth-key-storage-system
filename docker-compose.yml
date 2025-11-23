@@ -131,7 +131,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-auth_password_change_me}
 
       # JPA/Hibernate Configuration
-      SPRING_JPA_HIBERNATE_DDL_AUTO: ${JPA_DDL_AUTO:-update}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${JPA_DDL_AUTO:-create}
       SPRING_JPA_SHOW_SQL: ${JPA_SHOW_SQL:-false}
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
       SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: true
