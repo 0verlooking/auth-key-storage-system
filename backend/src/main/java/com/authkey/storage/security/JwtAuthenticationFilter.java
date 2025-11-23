@@ -62,15 +62,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             // Extract token (remove "Bearer " prefix)
             final String jwt = authHeader.substring(7);
-            final String userId = jwtService.extractUsername(jwt);
+            final String username = jwtService.extractUsername(jwt);
 
             // Validate token and set authentication
-            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userDetailsService.loadUserById(Long.parseLong(userId));
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
                 if (jwtService.isTokenValid(jwt, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userId, // Use userId as principal (not userDetails)
+                            userDetails,
                             null,
                             userDetails.getAuthorities()
                     );
@@ -78,9 +78,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
 
-                    log.debug("Successfully authenticated user ID: {} for path: {}", userId, requestPath);
+                    log.debug("Successfully authenticated user: {} for path: {}", username, requestPath);
                 } else {
-                    log.warn("Invalid JWT token for user ID: {}", userId);
+                    log.warn("Invalid JWT token for user: {}", username);
                 }
             }
         } catch (Exception e) {
@@ -98,15 +98,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * @return true if the path is public, false otherwise
      */
     private boolean isPublicEndpoint(String path) {
-        return path.startsWith("/api/v1/auth/") &&
-                (path.equals("/api/v1/auth/register") ||
-                        path.equals("/api/v1/auth/login") ||
-                        path.equals("/api/v1/auth/refresh") ||
-                        path.equals("/api/v1/auth/forgot-password") ||
-                        path.equals("/api/v1/auth/reset-password") ||
-                        path.equals("/api/v1/auth/verify-email") ||
-                        path.equals("/api/v1/auth/resend-verification")) ||
-                path.startsWith("/api/v1/share-links/") && !path.equals("/api/v1/share-links/my") ||
+        return path.startsWith("/api/auth/") &&
+                (path.equals("/api/auth/register") ||
+                        path.equals("/api/auth/login") ||
+                        path.equals("/api/auth/refresh") ||
+                        path.equals("/api/auth/forgot-password") ||
+                        path.equals("/api/auth/reset-password") ||
+                        path.equals("/api/auth/verify-email") ||
+                        path.equals("/api/auth/resend-verification")) ||
+                path.startsWith("/api/share-links/") && !path.equals("/api/share-links/my") ||
                 path.startsWith("/swagger-ui") ||
                 path.startsWith("/v3/api-docs") ||
                 path.startsWith("/swagger-resources") ||
