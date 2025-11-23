@@ -30,7 +30,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/tags")
+@RequestMapping("/api/tags")
 @RequiredArgsConstructor
 @Tag(name = "Tags", description = "Tag management APIs for categorizing authentication keys")
 @SecurityRequirement(name = "Bearer Authentication")

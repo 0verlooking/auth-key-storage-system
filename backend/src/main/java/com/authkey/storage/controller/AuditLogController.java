@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/audit-logs")
+@RequestMapping("/api/audit-logs")
 @RequiredArgsConstructor
 @Tag(name = "Audit Logs", description = "Audit log APIs for tracking user activities and security events")
 @SecurityRequirement(name = "Bearer Authentication")

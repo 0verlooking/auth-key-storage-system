@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/auth-keys")
+@RequestMapping("/api/auth-keys")
 @RequiredArgsConstructor
 @Tag(name = "Authentication Keys", description = "Authentication key management APIs")
 @SecurityRequirement(name = "Bearer Authentication")

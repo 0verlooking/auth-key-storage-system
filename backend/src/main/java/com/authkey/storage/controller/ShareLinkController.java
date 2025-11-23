@@ -29,7 +29,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/share-links")
+@RequestMapping("/api/share-links")
 @RequiredArgsConstructor
 @Tag(name = "Share Links", description = "Share link management APIs for sharing authentication keys")
 @CrossOrigin(origins = "*", maxAge = 3600)

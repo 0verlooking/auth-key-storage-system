@@ -30,7 +30,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/folders")
+@RequestMapping("/api/folders")
 @RequiredArgsConstructor
 @Tag(name = "Folders", description = "Folder management APIs for organizing authentication keys")
 @SecurityRequirement(name = "Bearer Authentication")
