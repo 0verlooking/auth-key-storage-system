@@ -141,6 +141,39 @@ public class AuthController {
     }
 
     /**
+     * Verify current session
+     *
+     * @param authentication the authenticated user
+     * @return user information if session is valid
+     */
+    @Operation(
+            summary = "Verify session",
+            description = "Verifies the current user's session and returns user information"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Session is valid",
+                    content = @Content(schema = @Schema(implementation = com.authkey.storage.dto.response.UserResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - invalid or expired token",
+                    content = @Content
+            )
+    })
+    @GetMapping("/verify")
+    public ResponseEntity<com.authkey.storage.dto.response.UserResponse> verifySession(
+            Authentication authentication
+    ) {
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
+        log.info("Session verification request for user ID: {}", userId);
+        com.authkey.storage.dto.response.UserResponse userResponse = userService.getUserResponseById(userId);
+        return ResponseEntity.ok(userResponse);
+    }
+
+    /**
      * Refresh access token using refresh token
      *
      * @param request the refresh token request
