@@ -27,7 +27,7 @@ export const ENABLE_AUDIT_LOGS = import.meta.env.VITE_ENABLE_AUDIT_LOGS !== 'fal
 // Security
 export const MAX_LOGIN_ATTEMPTS = parseInt(import.meta.env.VITE_MAX_LOGIN_ATTEMPTS) || 5;
 export const PASSWORD_MIN_LENGTH = parseInt(import.meta.env.VITE_PASSWORD_MIN_LENGTH) || 8;
-export const MASTER_PASSWORD_MIN_LENGTH = parseInt(import.meta.env.VITE_MASTER_PASSWORD_MIN_LENGTH) || 12;
+export const MASTER_PASSWORD_MIN_LENGTH = parseInt(import.meta.env.VITE_MASTER_PASSWORD_MIN_LENGTH) || 8;
 export const CLIPBOARD_CLEAR_TIMEOUT = 30000; // 30 seconds
 
 // UI Configuration
