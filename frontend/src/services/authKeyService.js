@@ -14,7 +14,8 @@ class AuthKeyService {
   async getAuthKeys(params = {}) {
     try {
       const response = await apiClient.get(API_ENDPOINTS.AUTH_KEYS, { params });
-      return response.data;
+      // Backend returns a Page object with content array
+      return response.data.content || response.data;
     } catch (error) {
       throw error;
     }
@@ -192,7 +193,8 @@ class AuthKeyService {
       const response = await apiClient.get(API_ENDPOINTS.AUTH_KEYS_SEARCH, {
         params: { q: query, ...params },
       });
-      return response.data;
+      // Backend returns a Page object with content array
+      return response.data.content || response.data;
     } catch (error) {
       throw error;
     }
@@ -204,7 +206,8 @@ class AuthKeyService {
   async getAuthKeysByFolder(folderId, params = {}) {
     try {
       const response = await apiClient.get(API_ENDPOINTS.AUTH_KEYS_BY_FOLDER(folderId), { params });
-      return response.data;
+      // Backend returns a Page object with content array
+      return response.data.content || response.data;
     } catch (error) {
       throw error;
     }
@@ -216,7 +219,8 @@ class AuthKeyService {
   async getAuthKeysByTag(tagId, params = {}) {
     try {
       const response = await apiClient.get(API_ENDPOINTS.AUTH_KEYS_BY_TAG(tagId), { params });
-      return response.data;
+      // Backend returns a Page object with content array
+      return response.data.content || response.data;
     } catch (error) {
       throw error;
     }
