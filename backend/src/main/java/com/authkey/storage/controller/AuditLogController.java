@@ -1,6 +1,7 @@
 package com.authkey.storage.controller;
 
 import com.authkey.storage.dto.response.AuditLogResponse;
+import com.authkey.storage.entity.User;
 import com.authkey.storage.service.AuditLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -74,7 +75,8 @@ public class AuditLogController {
             @Parameter(description = "Sort direction (ASC or DESC)")
             @RequestParam(defaultValue = "DESC") String direction
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Fetching audit logs for user ID: {} (page: {}, size: {})", userId, page, size);
 
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
@@ -122,7 +124,8 @@ public class AuditLogController {
             @Parameter(description = "Page size")
             @RequestParam(defaultValue = "20") int size
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Fetching audit logs for user ID: {} with action: {}", userId, action);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "performedAt"));
@@ -173,7 +176,8 @@ public class AuditLogController {
             @Parameter(description = "Page size")
             @RequestParam(defaultValue = "20") int size
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Fetching audit logs for user ID: {} with resource: {} ID: {}",
                 userId, resourceType, resourceId);
 

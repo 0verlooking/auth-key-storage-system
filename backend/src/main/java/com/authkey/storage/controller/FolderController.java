@@ -4,6 +4,7 @@ import com.authkey.storage.dto.request.CreateFolderRequest;
 import com.authkey.storage.dto.request.UpdateFolderRequest;
 import com.authkey.storage.dto.response.FolderResponse;
 import com.authkey.storage.dto.response.MessageResponse;
+import com.authkey.storage.entity.User;
 import com.authkey.storage.service.FolderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -73,7 +74,8 @@ public class FolderController {
             Authentication authentication,
             @Valid @RequestBody CreateFolderRequest request
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Creating folder for user ID: {}", userId);
         FolderResponse response = folderService.createFolder(userId, request);
         log.info("Folder created successfully with ID: {}", response.getId());
@@ -106,7 +108,8 @@ public class FolderController {
     public ResponseEntity<List<FolderResponse>> getAllFolders(
             Authentication authentication
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Fetching all folders for user ID: {}", userId);
         List<FolderResponse> response = folderService.getAllFolders(userId);
         log.info("Retrieved {} folders for user ID: {}", response.size(), userId);
@@ -139,7 +142,8 @@ public class FolderController {
     public ResponseEntity<List<FolderResponse>> getRootFolders(
             Authentication authentication
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Fetching root folders for user ID: {}", userId);
         List<FolderResponse> response = folderService.getRootFolders(userId);
         log.info("Retrieved {} root folders for user ID: {}", response.size(), userId);
@@ -181,7 +185,8 @@ public class FolderController {
             @Parameter(description = "Folder ID", required = true)
             @PathVariable Long id
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Fetching folder ID: {} for user ID: {}", id, userId);
         FolderResponse response = folderService.getFolderById(userId, id);
         return ResponseEntity.ok(response);
@@ -229,7 +234,8 @@ public class FolderController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateFolderRequest request
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Updating folder ID: {} for user ID: {}", id, userId);
         FolderResponse response = folderService.updateFolder(userId, id, request);
         log.info("Folder updated successfully: {}", id);
@@ -271,7 +277,8 @@ public class FolderController {
             @Parameter(description = "Folder ID", required = true)
             @PathVariable Long id
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.warn("Deleting folder ID: {} for user ID: {}", id, userId);
         folderService.deleteFolder(userId, id);
         log.info("Folder deleted successfully: {}", id);

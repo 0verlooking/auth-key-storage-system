@@ -3,6 +3,7 @@ package com.authkey.storage.controller;
 import com.authkey.storage.dto.request.*;
 import com.authkey.storage.dto.response.AuthResponse;
 import com.authkey.storage.dto.response.MessageResponse;
+import com.authkey.storage.entity.User;
 import com.authkey.storage.service.AuthService;
 import com.authkey.storage.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -131,7 +132,8 @@ public class AuthController {
     public ResponseEntity<MessageResponse> logout(
             Authentication authentication
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Logout request for user ID: {}", userId);
         authService.logout(userId);
         log.info("User logged out successfully: {}", userId);

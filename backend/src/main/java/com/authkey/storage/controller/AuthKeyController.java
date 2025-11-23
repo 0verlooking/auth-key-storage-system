@@ -4,6 +4,7 @@ import com.authkey.storage.dto.request.CreateAuthKeyRequest;
 import com.authkey.storage.dto.request.UpdateAuthKeyRequest;
 import com.authkey.storage.dto.response.AuthKeyResponse;
 import com.authkey.storage.dto.response.MessageResponse;
+import com.authkey.storage.entity.User;
 import com.authkey.storage.service.AuthKeyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -75,7 +76,8 @@ public class AuthKeyController {
             Authentication authentication,
             @Valid @RequestBody CreateAuthKeyRequest request
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Creating auth key for user ID: {}", userId);
         AuthKeyResponse response = authKeyService.createAuthKey(userId, request);
         log.info("Auth key created successfully with ID: {}", response.getId());
@@ -120,7 +122,8 @@ public class AuthKeyController {
             @Parameter(description = "Sort direction (ASC or DESC)")
             @RequestParam(defaultValue = "DESC") String direction
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Fetching auth keys for user ID: {} (page: {}, size: {})", userId, page, size);
 
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
@@ -166,7 +169,8 @@ public class AuthKeyController {
             @Parameter(description = "Authentication key ID", required = true)
             @PathVariable Long id
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Fetching auth key ID: {} for user ID: {}", id, userId);
         AuthKeyResponse response = authKeyService.getAuthKeyById(userId, id);
         authKeyService.incrementAccessCount(userId, id);
@@ -215,7 +219,8 @@ public class AuthKeyController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateAuthKeyRequest request
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Updating auth key ID: {} for user ID: {}", id, userId);
         AuthKeyResponse response = authKeyService.updateAuthKey(userId, id, request);
         log.info("Auth key updated successfully: {}", id);
@@ -257,7 +262,8 @@ public class AuthKeyController {
             @Parameter(description = "Authentication key ID", required = true)
             @PathVariable Long id
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.warn("Deleting auth key ID: {} for user ID: {}", id, userId);
         authKeyService.deleteAuthKey(userId, id);
         log.info("Auth key deleted successfully: {}", id);
@@ -304,7 +310,8 @@ public class AuthKeyController {
             @Parameter(description = "Page size")
             @RequestParam(defaultValue = "20") int size
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Fetching auth keys for folder ID: {} and user ID: {}", folderId, userId);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -345,7 +352,8 @@ public class AuthKeyController {
             @Parameter(description = "Page size")
             @RequestParam(defaultValue = "20") int size
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Fetching favorite auth keys for user ID: {}", userId);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
@@ -389,7 +397,8 @@ public class AuthKeyController {
             @Parameter(description = "Authentication key ID", required = true)
             @PathVariable Long id
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Toggling favorite status for auth key ID: {} and user ID: {}", id, userId);
         AuthKeyResponse response = authKeyService.toggleFavorite(userId, id);
         return ResponseEntity.ok(response);
@@ -430,7 +439,8 @@ public class AuthKeyController {
             @Parameter(description = "Page size")
             @RequestParam(defaultValue = "20") int size
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Searching auth keys for user ID: {} with query: '{}'", userId, query);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));

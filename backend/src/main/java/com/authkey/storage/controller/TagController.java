@@ -4,6 +4,7 @@ import com.authkey.storage.dto.request.CreateTagRequest;
 import com.authkey.storage.dto.request.UpdateTagRequest;
 import com.authkey.storage.dto.response.MessageResponse;
 import com.authkey.storage.dto.response.TagResponse;
+import com.authkey.storage.entity.User;
 import com.authkey.storage.service.TagService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -73,7 +74,8 @@ public class TagController {
             Authentication authentication,
             @Valid @RequestBody CreateTagRequest request
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Creating tag '{}' for user ID: {}", request.getName(), userId);
         TagResponse response = tagService.createTag(userId, request);
         log.info("Tag created successfully with ID: {}", response.getId());
@@ -106,7 +108,8 @@ public class TagController {
     public ResponseEntity<List<TagResponse>> getAllTags(
             Authentication authentication
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Fetching all tags for user ID: {}", userId);
         List<TagResponse> response = tagService.getAllTags(userId);
         log.info("Retrieved {} tags for user ID: {}", response.size(), userId);
@@ -148,7 +151,8 @@ public class TagController {
             @Parameter(description = "Tag ID", required = true)
             @PathVariable Long id
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Fetching tag ID: {} for user ID: {}", id, userId);
         TagResponse response = tagService.getTagById(userId, id);
         return ResponseEntity.ok(response);
@@ -196,7 +200,8 @@ public class TagController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateTagRequest request
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Updating tag ID: {} for user ID: {}", id, userId);
 
         // Convert UpdateTagRequest to CreateTagRequest for service compatibility
@@ -245,7 +250,8 @@ public class TagController {
             @Parameter(description = "Tag ID", required = true)
             @PathVariable Long id
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.warn("Deleting tag ID: {} for user ID: {}", id, userId);
         tagService.deleteTag(userId, id);
         log.info("Tag deleted successfully: {}", id);

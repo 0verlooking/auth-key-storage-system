@@ -4,6 +4,7 @@ import com.authkey.storage.dto.request.ChangePasswordRequest;
 import com.authkey.storage.dto.request.UpdateUserRequest;
 import com.authkey.storage.dto.response.MessageResponse;
 import com.authkey.storage.dto.response.UserResponse;
+import com.authkey.storage.entity.User;
 import com.authkey.storage.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -62,7 +63,8 @@ public class UserController {
     public ResponseEntity<UserResponse> getCurrentUser(
             Authentication authentication
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Fetching profile for user ID: {}", userId);
         UserResponse response = userService.getUserResponseById(userId);
         return ResponseEntity.ok(response);
@@ -107,7 +109,8 @@ public class UserController {
             Authentication authentication,
             @Valid @RequestBody UpdateUserRequest request
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Updating profile for user ID: {}", userId);
         UserResponse response = userService.updateProfile(
                 userId,
@@ -153,7 +156,8 @@ public class UserController {
             Authentication authentication,
             @Valid @RequestBody ChangePasswordRequest request
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Password change request for user ID: {}", userId);
         userService.changePassword(userId, request);
         log.info("Password changed successfully for user ID: {}", userId);
@@ -188,7 +192,8 @@ public class UserController {
     public ResponseEntity<MessageResponse> deleteAccount(
             Authentication authentication
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.warn("Account deletion request for user ID: {}", userId);
         userService.deleteAccount(userId);
         log.warn("Account deleted successfully for user ID: {}", userId);

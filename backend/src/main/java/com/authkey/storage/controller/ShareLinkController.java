@@ -3,6 +3,7 @@ package com.authkey.storage.controller;
 import com.authkey.storage.dto.request.CreateShareLinkRequest;
 import com.authkey.storage.dto.response.MessageResponse;
 import com.authkey.storage.dto.response.ShareLinkResponse;
+import com.authkey.storage.entity.User;
 import com.authkey.storage.service.ShareLinkService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -77,7 +78,8 @@ public class ShareLinkController {
             Authentication authentication,
             @Valid @RequestBody CreateShareLinkRequest request
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Creating share link for auth key ID: {} by user ID: {}",
                 request.getAuthKeyId(), userId);
         ShareLinkResponse response = shareLinkService.createShareLink(userId, request);
@@ -159,7 +161,8 @@ public class ShareLinkController {
     public ResponseEntity<List<ShareLinkResponse>> getMyShareLinks(
             Authentication authentication
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.info("Fetching share links for user ID: {}", userId);
         List<ShareLinkResponse> response = shareLinkService.getUserShareLinks(userId);
         log.info("Retrieved {} share links for user ID: {}", response.size(), userId);
@@ -202,7 +205,8 @@ public class ShareLinkController {
             @Parameter(description = "Share link ID", required = true)
             @PathVariable Long id
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        User user = (User) authentication.getPrincipal();
+        Long userId = user.getId();
         log.warn("Revoking share link ID: {} by user ID: {}", id, userId);
         shareLinkService.revokeShareLink(userId, id);
         log.info("Share link revoked successfully: {}", id);
