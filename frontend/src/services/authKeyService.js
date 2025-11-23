@@ -43,32 +43,31 @@ class AuthKeyService {
         throw new Error('Master password not found. Please log in again.');
       }
 
-      // Encrypt sensitive fields
-      const encryptedData = {
-        ...keyData,
+      // Encrypt the main value with separate fields for backend
+      const encryptedFields = await cryptoService.encryptWithSeparateFields(
+        keyData.value,
+        masterPassword
+      );
+
+      // Map frontend fields to backend DTO structure
+      const requestData = {
+        title: keyData.title,
+        description: keyData.description,
+        keyType: keyData.keyType,
+        username: keyData.username, // Plain text
+        email: keyData.email, // Plain text
+        encryptedValue: encryptedFields.encryptedValue,
+        encryptionIv: encryptedFields.encryptionIv,
+        encryptionSalt: encryptedFields.encryptionSalt,
+        url: keyData.url,
+        notes: keyData.notes, // Plain text
+        folderId: keyData.folderId,
+        tagIds: keyData.tagIds,
+        expiresAt: keyData.expiresAt,
+        passwordStrength: keyData.passwordStrength,
       };
 
-      // Encrypt value (password, API key, etc.)
-      if (keyData.value) {
-        encryptedData.value = await cryptoService.encrypt(keyData.value, masterPassword);
-      }
-
-      // Encrypt username if provided
-      if (keyData.username) {
-        encryptedData.username = await cryptoService.encrypt(keyData.username, masterPassword);
-      }
-
-      // Encrypt notes if provided
-      if (keyData.notes) {
-        encryptedData.notes = await cryptoService.encrypt(keyData.notes, masterPassword);
-      }
-
-      // Encrypt metadata if provided
-      if (keyData.metadata) {
-        encryptedData.metadata = await cryptoService.encryptObject(keyData.metadata, masterPassword);
-      }
-
-      const response = await apiClient.post(API_ENDPOINTS.AUTH_KEYS, encryptedData);
+      const response = await apiClient.post(API_ENDPOINTS.AUTH_KEYS, requestData);
       return response.data;
     } catch (error) {
       throw error;
@@ -85,28 +84,33 @@ class AuthKeyService {
         throw new Error('Master password not found. Please log in again.');
       }
 
-      // Encrypt sensitive fields if they are being updated
-      const encryptedData = {
-        ...keyData,
+      // Build update request
+      const requestData = {
+        title: keyData.title,
+        description: keyData.description,
+        keyType: keyData.keyType,
+        username: keyData.username,
+        email: keyData.email,
+        url: keyData.url,
+        notes: keyData.notes,
+        folderId: keyData.folderId,
+        tagIds: keyData.tagIds,
+        expiresAt: keyData.expiresAt,
+        passwordStrength: keyData.passwordStrength,
       };
 
+      // If value is being updated, encrypt it with separate fields
       if (keyData.value !== undefined) {
-        encryptedData.value = await cryptoService.encrypt(keyData.value, masterPassword);
+        const encryptedFields = await cryptoService.encryptWithSeparateFields(
+          keyData.value,
+          masterPassword
+        );
+        requestData.encryptedValue = encryptedFields.encryptedValue;
+        requestData.encryptionIv = encryptedFields.encryptionIv;
+        requestData.encryptionSalt = encryptedFields.encryptionSalt;
       }
 
-      if (keyData.username !== undefined) {
-        encryptedData.username = await cryptoService.encrypt(keyData.username, masterPassword);
-      }
-
-      if (keyData.notes !== undefined) {
-        encryptedData.notes = await cryptoService.encrypt(keyData.notes, masterPassword);
-      }
-
-      if (keyData.metadata !== undefined) {
-        encryptedData.metadata = await cryptoService.encryptObject(keyData.metadata, masterPassword);
-      }
-
-      const response = await apiClient.put(API_ENDPOINTS.AUTH_KEYS_BY_ID(id), encryptedData);
+      const response = await apiClient.put(API_ENDPOINTS.AUTH_KEYS_BY_ID(id), requestData);
       return response.data;
     } catch (error) {
       throw error;
@@ -139,45 +143,23 @@ class AuthKeyService {
         ...encryptedKey,
       };
 
-      // Decrypt value
-      if (encryptedKey.value) {
+      // Decrypt value using separate fields
+      if (encryptedKey.encryptedValue && encryptedKey.encryptionIv && encryptedKey.encryptionSalt) {
         try {
-          decryptedKey.value = await cryptoService.decrypt(encryptedKey.value, masterPassword);
+          decryptedKey.value = await cryptoService.decryptWithSeparateFields(
+            encryptedKey.encryptedValue,
+            encryptedKey.encryptionIv,
+            encryptedKey.encryptionSalt,
+            masterPassword
+          );
         } catch (error) {
           console.error('Error decrypting value:', error);
           decryptedKey.value = '[Decryption Failed]';
         }
       }
 
-      // Decrypt username
-      if (encryptedKey.username) {
-        try {
-          decryptedKey.username = await cryptoService.decrypt(encryptedKey.username, masterPassword);
-        } catch (error) {
-          console.error('Error decrypting username:', error);
-          decryptedKey.username = '[Decryption Failed]';
-        }
-      }
-
-      // Decrypt notes
-      if (encryptedKey.notes) {
-        try {
-          decryptedKey.notes = await cryptoService.decrypt(encryptedKey.notes, masterPassword);
-        } catch (error) {
-          console.error('Error decrypting notes:', error);
-          decryptedKey.notes = '[Decryption Failed]';
-        }
-      }
-
-      // Decrypt metadata
-      if (encryptedKey.metadata) {
-        try {
-          decryptedKey.metadata = await cryptoService.decryptObject(encryptedKey.metadata, masterPassword);
-        } catch (error) {
-          console.error('Error decrypting metadata:', error);
-          decryptedKey.metadata = {};
-        }
-      }
+      // Username and notes are not encrypted (plain text)
+      // They are already in the correct format
 
       return decryptedKey;
     } catch (error) {

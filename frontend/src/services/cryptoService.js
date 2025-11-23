@@ -116,6 +116,41 @@ class CryptoService {
   }
 
   /**
+   * Encrypt data with separate IV and salt (for backend storage)
+   * Returns an object with encrypted value, IV, and salt as separate base64 strings
+   */
+  async encryptWithSeparateFields(data, masterPassword) {
+    try {
+      // Generate salt and IV
+      const salt = this.generateRandomBytes(SALT_LENGTH);
+      const iv = this.generateRandomBytes(IV_LENGTH);
+
+      // Derive key from master password
+      const key = await this.deriveKey(masterPassword, salt);
+
+      // Encrypt data
+      const encryptedData = await crypto.subtle.encrypt(
+        {
+          name: 'AES-GCM',
+          iv: iv,
+        },
+        key,
+        this.textEncoder.encode(data)
+      );
+
+      // Return separate base64-encoded values
+      return {
+        encryptedValue: this.arrayBufferToBase64(encryptedData),
+        encryptionIv: this.arrayBufferToBase64(iv.buffer),
+        encryptionSalt: this.arrayBufferToBase64(salt.buffer),
+      };
+    } catch (error) {
+      console.error('Error encrypting data:', error);
+      throw new Error('Failed to encrypt data');
+    }
+  }
+
+  /**
    * Decrypt data with AES-256-GCM
    */
   async decrypt(encryptedData, masterPassword) {
@@ -127,6 +162,36 @@ class CryptoService {
       const salt = combined.slice(0, SALT_LENGTH);
       const iv = combined.slice(SALT_LENGTH, SALT_LENGTH + IV_LENGTH);
       const data = combined.slice(SALT_LENGTH + IV_LENGTH);
+
+      // Derive key from master password
+      const key = await this.deriveKey(masterPassword, salt);
+
+      // Decrypt data
+      const decryptedData = await crypto.subtle.decrypt(
+        {
+          name: 'AES-GCM',
+          iv: iv,
+        },
+        key,
+        data
+      );
+
+      return this.textDecoder.decode(decryptedData);
+    } catch (error) {
+      console.error('Error decrypting data:', error);
+      throw new Error('Failed to decrypt data. Invalid master password or corrupted data.');
+    }
+  }
+
+  /**
+   * Decrypt data with separate IV and salt (from backend storage)
+   */
+  async decryptWithSeparateFields(encryptedValue, encryptionIv, encryptionSalt, masterPassword) {
+    try {
+      // Convert from base64
+      const salt = new Uint8Array(this.base64ToArrayBuffer(encryptionSalt));
+      const iv = new Uint8Array(this.base64ToArrayBuffer(encryptionIv));
+      const data = new Uint8Array(this.base64ToArrayBuffer(encryptedValue));
 
       // Derive key from master password
       const key = await this.deriveKey(masterPassword, salt);
