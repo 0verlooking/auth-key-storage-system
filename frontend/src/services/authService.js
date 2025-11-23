@@ -13,17 +13,17 @@ class AuthService {
    */
   async register(userData) {
     try {
-      const { email, password, master_password, name } = userData;
+      const { email, password, master_password, username, firstName, lastName } = userData;
 
-      // Hash master password for server (but don't send actual master password)
+      // Hash password for server (SHA-256 like login)
       const password_hash = await cryptoService.hashPassword(password);
-      const master_password_hash = await cryptoService.hashPassword(master_password);
 
       const response = await apiClient.post(API_ENDPOINTS.AUTH_REGISTER, {
+        username: username || email.split('@')[0], // Use email prefix if no username
         email,
         password: password_hash,
-        master_password_hash,
-        name,
+        firstName,
+        lastName,
       });
 
       const { token, refresh_token, user } = response.data;
@@ -56,9 +56,8 @@ class AuthService {
       const master_password_hash = await cryptoService.hashPassword(master_password);
 
       const response = await apiClient.post(API_ENDPOINTS.AUTH_LOGIN, {
-        email,
+        usernameOrEmail: email,
         password: password_hash,
-        master_password_hash,
       });
 
       const { token, refresh_token, user } = response.data;
