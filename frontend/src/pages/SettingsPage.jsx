@@ -20,7 +20,7 @@ import {
   TextField,
 } from '@mui/material';
 import { useFormik } from 'formik';
-import { useTheme } from '@hooks/useTheme';
+import { useThemeMode } from '@hooks/useThemeMode';
 import { userService } from '@services/userService';
 import { storageService } from '@services/storageService';
 import { useNotification } from '@hooks/useNotification';
@@ -31,7 +31,7 @@ import { THEME_MODES } from '@config/constants';
  * SettingsPage - Application settings page
  */
 const SettingsPage = () => {
-  const { mode, toggleTheme } = useTheme();
+  const { mode, toggleTheme } = useThemeMode();
   const { success, error: showError } = useNotification();
 
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
