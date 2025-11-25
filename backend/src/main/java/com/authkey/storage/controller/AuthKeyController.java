@@ -78,9 +78,9 @@ public class AuthKeyController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Creating auth key for user ID: {}", userId);
+        log.debug("Creating auth key for user ID: {}", userId);
         AuthKeyResponse response = authKeyService.createAuthKey(userId, request);
-        log.info("Auth key created successfully with ID: {}", response.getId());
+        log.debug("Auth key created successfully with ID: {}", response.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -124,13 +124,13 @@ public class AuthKeyController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Fetching auth keys for user ID: {} (page: {}, size: {})", userId, page, size);
+        log.debug("Fetching auth keys for user ID: {} (page: {}, size: {})", userId, page, size);
 
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
 
         Page<AuthKeyResponse> response = authKeyService.getAllAuthKeys(userId, pageable);
-        log.info("Retrieved {} auth keys for user ID: {}", response.getTotalElements(), userId);
+        log.debug("Retrieved {} auth keys for user ID: {}", response.getTotalElements(), userId);
         return ResponseEntity.ok(response);
     }
 
@@ -171,7 +171,7 @@ public class AuthKeyController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Fetching auth key ID: {} for user ID: {}", id, userId);
+        log.debug("Fetching auth key ID: {} for user ID: {}", id, userId);
         AuthKeyResponse response = authKeyService.getAuthKeyById(userId, id);
         authKeyService.incrementAccessCount(userId, id);
         return ResponseEntity.ok(response);
@@ -221,9 +221,9 @@ public class AuthKeyController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Updating auth key ID: {} for user ID: {}", id, userId);
+        log.debug("Updating auth key ID: {} for user ID: {}", id, userId);
         AuthKeyResponse response = authKeyService.updateAuthKey(userId, id, request);
-        log.info("Auth key updated successfully: {}", id);
+        log.debug("Auth key updated successfully: {}", id);
         return ResponseEntity.ok(response);
     }
 
@@ -266,7 +266,7 @@ public class AuthKeyController {
         Long userId = user.getId();
         log.warn("Deleting auth key ID: {} for user ID: {}", id, userId);
         authKeyService.deleteAuthKey(userId, id);
-        log.info("Auth key deleted successfully: {}", id);
+        log.debug("Auth key deleted successfully: {}", id);
         return ResponseEntity.ok(new MessageResponse("Authentication key deleted successfully"));
     }
 
@@ -312,7 +312,7 @@ public class AuthKeyController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Fetching auth keys for folder ID: {} and user ID: {}", folderId, userId);
+        log.debug("Fetching auth keys for folder ID: {} and user ID: {}", folderId, userId);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<AuthKeyResponse> response = authKeyService.getAuthKeysByFolder(userId, folderId, pageable);
@@ -354,7 +354,7 @@ public class AuthKeyController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Fetching favorite auth keys for user ID: {}", userId);
+        log.debug("Fetching favorite auth keys for user ID: {}", userId);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
         Page<AuthKeyResponse> response = authKeyService.getFavoriteAuthKeys(userId, pageable);
@@ -399,7 +399,7 @@ public class AuthKeyController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Toggling favorite status for auth key ID: {} and user ID: {}", id, userId);
+        log.debug("Toggling favorite status for auth key ID: {} and user ID: {}", id, userId);
         AuthKeyResponse response = authKeyService.toggleFavorite(userId, id);
         return ResponseEntity.ok(response);
     }
@@ -441,12 +441,12 @@ public class AuthKeyController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Searching auth keys for user ID: {} with query: '{}'", userId, query);
+        log.debug("Searching auth keys for user ID: {} with query: '{}'", userId, query);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<AuthKeyResponse> response = authKeyService.searchAuthKeys(userId, query, pageable);
 
-        log.info("Found {} auth keys matching query for user ID: {}", response.getTotalElements(), userId);
+        log.debug("Found {} auth keys matching query for user ID: {}", response.getTotalElements(), userId);
         return ResponseEntity.ok(response);
     }
 }
