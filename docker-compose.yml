@@ -131,10 +131,10 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-auth_password_change_me}
 
       # JPA/Hibernate Configuration
-      SPRING_JPA_HIBERNATE_DDL_AUTO: ${JPA_DDL_AUTO:-create}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${JPA_DDL_AUTO:-update}
       SPRING_JPA_SHOW_SQL: ${JPA_SHOW_SQL:-false}
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
-      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: true
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: false
 
       # Redis Configuration
       SPRING_DATA_REDIS_HOST: redis
@@ -150,11 +150,11 @@ services:
       SERVER_PORT: 8080
 
       # CORS Configuration
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:80,http://frontend}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost,http://localhost:3000,http://localhost:80,http://frontend}
 
       # Logging
       LOGGING_LEVEL_ROOT: ${LOG_LEVEL_ROOT:-INFO}
-      LOGGING_LEVEL_COM_AUTHKEY: ${LOG_LEVEL_APP:-DEBUG}
+      LOGGING_LEVEL_COM_AUTHKEY: ${LOG_LEVEL_APP:-INFO}
 
       # Mail Configuration (опціонально)
       SPRING_MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}

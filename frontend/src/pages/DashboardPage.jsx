@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Box, Typography, Button, Grid } from '@mui/material';
 import { Add } from '@mui/icons-material';
@@ -21,11 +21,7 @@ const DashboardPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    loadAuthKeys();
-  }, [folderId]);
-
-  const loadAuthKeys = async () => {
+  const loadAuthKeys = useCallback(async () => {
     try {
       if (folderId) {
         await filterByFolder(folderId);
@@ -35,7 +31,11 @@ const DashboardPage = () => {
     } catch (err) {
       showError('Failed to load auth keys');
     }
-  };
+  }, [folderId, filterByFolder, fetchAuthKeys, showError]);
+
+  useEffect(() => {
+    loadAuthKeys();
+  }, [loadAuthKeys]);
 
   const handleSearch = async (query) => {
     setSearchQuery(query);
