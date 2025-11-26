@@ -116,14 +116,17 @@ export const PASSWORD_STRENGTH = {
   VERY_STRONG: 'very_strong',
 };
 
-// Auth Key Types
+// Auth Key Types (must match backend enum exactly)
 export const AUTH_KEY_TYPES = {
-  PASSWORD: 'password',
-  API_KEY: 'api_key',
-  TOKEN: 'token',
-  SSH_KEY: 'ssh_key',
-  CERTIFICATE: 'certificate',
-  OTHER: 'other',
+  PASSWORD: 'PASSWORD',
+  API_KEY: 'API_KEY',
+  TOKEN: 'TOKEN',
+  SSH_KEY: 'SSH_KEY',
+  PRIVATE_KEY: 'PRIVATE_KEY',
+  CERTIFICATE: 'CERTIFICATE',
+  TWO_FA_SECRET: 'TWO_FA_SECRET',
+  RECOVERY_CODE: 'RECOVERY_CODE',
+  OTHER: 'OTHER',
 };
 
 // Share Link Access Types

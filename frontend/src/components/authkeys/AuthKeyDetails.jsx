@@ -25,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import { useAuthKeys } from '@hooks/useAuthKeys';
 import { useNotification } from '@hooks/useNotification';
+import { AUTH_KEY_TYPES } from '@config/constants';
 import { formatDateTime, formatKeyType } from '@utils/formatters';
 import CopyButton from '@components/common/CopyButton';
 import ConfirmDialog from '@components/common/ConfirmDialog';
@@ -139,7 +140,7 @@ const AuthKeyDetails = ({ open, authKey, onClose, onUpdated }) => {
 
                 <Grid item xs={12}>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
-                    {decryptedKey.type === 'password' ? 'Password' : 'Value'}
+                    {decryptedKey.type === AUTH_KEY_TYPES.PASSWORD ? 'Password' : 'Value'}
                   </Typography>
                   <TextField
                     fullWidth

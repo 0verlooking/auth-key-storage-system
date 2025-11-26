@@ -38,7 +38,7 @@ const AuthKeyDialog = ({ open, onClose, authKey = null, onSaved }) => {
   const formik = useFormik({
     initialValues: {
       name: authKey?.name || '',
-      type: authKey?.type || 'password',
+      type: authKey?.type || AUTH_KEY_TYPES.PASSWORD,
       value: authKey?.value || '',
       username: authKey?.username || '',
       url: authKey?.url || '',
@@ -133,7 +133,7 @@ const AuthKeyDialog = ({ open, onClose, authKey = null, onSaved }) => {
                   fullWidth
                   id="value"
                   name="value"
-                  label={formik.values.type === 'password' ? 'Password' : 'Value'}
+                  label={formik.values.type === AUTH_KEY_TYPES.PASSWORD ? 'Password' : 'Value'}
                   type={showValue ? 'text' : 'password'}
                   value={formik.values.value}
                   onChange={formik.handleChange}
@@ -143,7 +143,7 @@ const AuthKeyDialog = ({ open, onClose, authKey = null, onSaved }) => {
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
-                        {formik.values.type === 'password' && (
+                        {formik.values.type === AUTH_KEY_TYPES.PASSWORD && (
                           <IconButton
                             onClick={() => setGeneratorOpen(true)}
                             edge="end"
@@ -159,7 +159,7 @@ const AuthKeyDialog = ({ open, onClose, authKey = null, onSaved }) => {
                     ),
                   }}
                 />
-                {formik.values.type === 'password' && formik.values.value && (
+                {formik.values.type === AUTH_KEY_TYPES.PASSWORD && formik.values.value && (
                   <Box sx={{ mt: 1 }}>
                     <PasswordStrengthMeter password={formik.values.value} />
                   </Box>

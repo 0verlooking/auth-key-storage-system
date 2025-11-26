@@ -111,14 +111,17 @@ export const toTitleCase = (str) => {
  */
 export const formatKeyType = (type) => {
   const types = {
-    password: 'Password',
-    api_key: 'API Key',
-    token: 'Token',
-    ssh_key: 'SSH Key',
-    certificate: 'Certificate',
-    other: 'Other',
+    PASSWORD: 'Password',
+    API_KEY: 'API Key',
+    TOKEN: 'Token',
+    SSH_KEY: 'SSH Key',
+    PRIVATE_KEY: 'Private Key',
+    CERTIFICATE: 'Certificate',
+    TWO_FA_SECRET: '2FA Secret',
+    RECOVERY_CODE: 'Recovery Code',
+    OTHER: 'Other',
   };
-  return types[type] || type;
+  return types[type] || toTitleCase(type);
 };
 
 /**
