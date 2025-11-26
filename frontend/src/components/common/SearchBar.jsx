@@ -14,7 +14,8 @@ const SearchBar = ({ onSearch, placeholder = 'Search...', delay = 300, fullWidth
   // Call onSearch when debounced value changes
   useEffect(() => {
     onSearch(debouncedValue);
-  }, [debouncedValue, onSearch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedValue]); // Only depend on debouncedValue, not onSearch
 
   const handleClear = () => {
     setValue('');

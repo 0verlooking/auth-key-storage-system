@@ -39,7 +39,7 @@ const DashboardPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [folderId]); // Only depend on folderId
 
-  const handleSearch = async (query) => {
+  const handleSearch = useCallback(async (query) => {
     setSearchQuery(query);
     if (query) {
       try {
@@ -59,7 +59,8 @@ const DashboardPage = () => {
         showError('Failed to load auth keys');
       }
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [folderId]); // Only depend on folderId, not on context functions
 
   const handleCreateKey = () => {
     setDialogOpen(true);
@@ -69,7 +70,7 @@ const DashboardPage = () => {
     setDialogOpen(false);
   };
 
-  const handleKeySaved = async () => {
+  const handleKeySaved = useCallback(async () => {
     try {
       if (folderId) {
         await filterByFolder(folderId);
@@ -79,7 +80,21 @@ const DashboardPage = () => {
     } catch (err) {
       showError('Failed to refresh auth keys');
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [folderId]);
+
+  const handleRefresh = useCallback(async () => {
+    try {
+      if (folderId) {
+        await filterByFolder(folderId);
+      } else {
+        await fetchAuthKeys();
+      }
+    } catch (err) {
+      showError('Failed to refresh auth keys');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [folderId]);
 
   return (
     <Box>
@@ -112,20 +127,7 @@ const DashboardPage = () => {
       {isLoading ? (
         <LoadingSpinner message="Loading keys..." />
       ) : (
-        <AuthKeyList
-          keys={authKeys}
-          onRefresh={async () => {
-            try {
-              if (folderId) {
-                await filterByFolder(folderId);
-              } else {
-                await fetchAuthKeys();
-              }
-            } catch (err) {
-              showError('Failed to refresh auth keys');
-            }
-          }}
-        />
+        <AuthKeyList keys={authKeys} onRefresh={handleRefresh} />
       )}
 
       {/* Create/Edit Dialog */}

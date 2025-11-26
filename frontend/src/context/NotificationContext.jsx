@@ -1,4 +1,4 @@
-import { createContext, useState, useCallback } from 'react';
+import { createContext, useState, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 
 export const NotificationContext = createContext(null);
@@ -72,16 +72,19 @@ export const NotificationProvider = ({ children }) => {
     });
   }, [addNotification]);
 
-  const value = {
-    notifications,
-    addNotification,
-    removeNotification,
-    clearNotifications,
-    success,
-    error,
-    warning,
-    info,
-  };
+  const value = useMemo(
+    () => ({
+      notifications,
+      addNotification,
+      removeNotification,
+      clearNotifications,
+      success,
+      error,
+      warning,
+      info,
+    }),
+    [notifications, addNotification, removeNotification, clearNotifications, success, error, warning, info]
+  );
 
   return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
 };
