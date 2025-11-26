@@ -1006,6 +1006,37 @@ String token = Jwts.builder()
 
 ## 🚀 Швидкий Старт
 
+### ⚡ Найпростіший спосіб (рекомендовано)
+
+**Windows:**
+```cmd
+start.bat
+```
+
+**Linux/Mac:**
+```bash
+./start.sh
+```
+
+Скрипт автоматично:
+1. ✅ Запустить Docker контейнери
+2. ✅ Створить базу даних
+3. ✅ Завантажить тестові дані
+4. ✅ Покаже облікові дані для входу
+
+Після запуску відкрийте: **http://localhost**
+
+**Тестові облікові дані:**
+- Email: `test@example.com` або `admin@example.com`
+- Password: `Test123!` або `Admin123!`
+- Master Password: `Test123!` або `Admin123!`
+
+📖 Детальніше: [QUICK_START.md](QUICK_START.md)
+
+---
+
+### 🔧 Ручна установка
+
 ### Вимоги
 
 - **Docker** 24.0+
@@ -1019,67 +1050,31 @@ git clone https://github.com/yourusername/auth-key-storage-system.git
 cd auth-key-storage-system
 ```
 
-### Крок 2: Налаштування Environment
-
-Створіть файл `.env` в корені проекту:
+### Крок 2: Запуск через Docker Compose
 
 ```bash
-cp .env.example .env
-```
-
-Редагуйте `.env` (змініть паролі та секрети):
-
-```env
-# Database
-POSTGRES_DB=auth_storage_db
-POSTGRES_USER=auth_user
-POSTGRES_PASSWORD=your_secure_password
-
-# Redis
-REDIS_PASSWORD=your_redis_password
-
-# JWT
-JWT_SECRET=your-super-secret-jwt-key-at-least-256-bits
-JWT_EXPIRATION=86400000
-JWT_REFRESH_EXPIRATION=604800000
-
-# Ports
-POSTGRES_PORT=5432
-REDIS_PORT=6379
-BACKEND_PORT=8080
-FRONTEND_PORT=80
-```
-
-### Крок 3: Запуск через Docker Compose
-
-```bash
+# Windows
 docker-compose up -d
+
+# Linux/Mac
+docker compose up -d
 ```
 
-### Крок 4: Перевірка Статусу
+### Крок 3: Ініціалізація бази даних
 
 ```bash
-docker-compose ps
+# Windows
+init-database.bat
+
+# Linux/Mac
+./init-database.sh
 ```
 
-Всі контейнери повинні бути в стані `healthy` або `running`.
-
-### Крок 5: Доступ до Застосунку
+### Крок 4: Доступ до Застосунку
 
 - **Frontend**: [http://localhost](http://localhost)
 - **Backend API**: [http://localhost:8080](http://localhost:8080)
 - **Swagger UI**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-- **PgAdmin** (опціонально): [http://localhost:5050](http://localhost:5050)
-
-### Крок 6: Створення Тестового Користувача
-
-Відкрийте [http://localhost](http://localhost) та зареєструйтеся:
-
-- **Full Name**: John Doe
-- **Email**: john@example.com
-- **Username**: johndoe
-- **Password**: YourPassword123!
-- **Master Password**: YourMasterPass123!
 
 ---
 
