@@ -77,13 +77,13 @@ public class AuditLogController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Fetching audit logs for user ID: {} (page: {}, size: {})", userId, page, size);
+        log.debug("Fetching audit logs for user ID: {} (page: {}, size: {})", userId, page, size);
 
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
 
         Page<AuditLogResponse> response = auditLogService.getUserAuditLogs(userId, pageable);
-        log.info("Retrieved {} audit logs for user ID: {}", response.getTotalElements(), userId);
+        log.debug("Retrieved {} audit logs for user ID: {}", response.getTotalElements(), userId);
 
         return ResponseEntity.ok(response);
     }
@@ -126,12 +126,12 @@ public class AuditLogController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Fetching audit logs for user ID: {} with action: {}", userId, action);
+        log.debug("Fetching audit logs for user ID: {} with action: {}", userId, action);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "performedAt"));
         Page<AuditLogResponse> response = auditLogService.getAuditLogsByAction(userId, action, pageable);
 
-        log.info("Retrieved {} audit logs with action '{}' for user ID: {}",
+        log.debug("Retrieved {} audit logs with action '{}' for user ID: {}",
                 response.getTotalElements(), action, userId);
 
         return ResponseEntity.ok(response);
@@ -178,7 +178,7 @@ public class AuditLogController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Fetching audit logs for user ID: {} with resource: {} ID: {}",
+        log.debug("Fetching audit logs for user ID: {} with resource: {} ID: {}",
                 userId, resourceType, resourceId);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "performedAt"));
@@ -186,7 +186,7 @@ public class AuditLogController {
                 userId, resourceType, resourceId, pageable
         );
 
-        log.info("Retrieved {} audit logs for resource {} ID {} and user ID: {}",
+        log.debug("Retrieved {} audit logs for resource {} ID {} and user ID: {}",
                 response.getTotalElements(), resourceType, resourceId, userId);
 
         return ResponseEntity.ok(response);

@@ -76,9 +76,9 @@ public class TagController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Creating tag '{}' for user ID: {}", request.getName(), userId);
+        log.debug("Creating tag '{}' for user ID: {}", request.getName(), userId);
         TagResponse response = tagService.createTag(userId, request);
-        log.info("Tag created successfully with ID: {}", response.getId());
+        log.debug("Tag created successfully with ID: {}", response.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -110,9 +110,9 @@ public class TagController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Fetching all tags for user ID: {}", userId);
+        log.debug("Fetching all tags for user ID: {}", userId);
         List<TagResponse> response = tagService.getAllTags(userId);
-        log.info("Retrieved {} tags for user ID: {}", response.size(), userId);
+        log.debug("Retrieved {} tags for user ID: {}", response.size(), userId);
         return ResponseEntity.ok(response);
     }
 
@@ -153,7 +153,7 @@ public class TagController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Fetching tag ID: {} for user ID: {}", id, userId);
+        log.debug("Fetching tag ID: {} for user ID: {}", id, userId);
         TagResponse response = tagService.getTagById(userId, id);
         return ResponseEntity.ok(response);
     }
@@ -202,7 +202,7 @@ public class TagController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Updating tag ID: {} for user ID: {}", id, userId);
+        log.debug("Updating tag ID: {} for user ID: {}", id, userId);
 
         // Convert UpdateTagRequest to CreateTagRequest for service compatibility
         CreateTagRequest createRequest = CreateTagRequest.builder()
@@ -211,7 +211,7 @@ public class TagController {
                 .build();
 
         TagResponse response = tagService.updateTag(userId, id, createRequest);
-        log.info("Tag updated successfully: {}", id);
+        log.debug("Tag updated successfully: {}", id);
         return ResponseEntity.ok(response);
     }
 
@@ -254,7 +254,7 @@ public class TagController {
         Long userId = user.getId();
         log.warn("Deleting tag ID: {} for user ID: {}", id, userId);
         tagService.deleteTag(userId, id);
-        log.info("Tag deleted successfully: {}", id);
+        log.debug("Tag deleted successfully: {}", id);
         return ResponseEntity.ok(new MessageResponse("Tag deleted successfully"));
     }
 }

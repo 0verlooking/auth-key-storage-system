@@ -63,9 +63,9 @@ public class AuthController {
     public ResponseEntity<AuthResponse> register(
             @Valid @RequestBody RegisterRequest request
     ) {
-        log.info("Attempting to register new user with email: {}", request.getEmail());
+        log.debug("Attempting to register new user with email: {}", request.getEmail());
         AuthResponse response = authService.register(request);
-        log.info("User registered successfully with ID: {}", response.getUser().getId());
+        log.debug("User registered successfully with ID: {}", response.getUser().getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -100,9 +100,9 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(
             @Valid @RequestBody LoginRequest request
     ) {
-        log.info("Login attempt for user: {}", request.getUsernameOrEmail());
+        log.debug("Login attempt for user: {}", request.getUsernameOrEmail());
         AuthResponse response = authService.login(request);
-        log.info("User logged in successfully: {}", request.getUsernameOrEmail());
+        log.debug("User logged in successfully: {}", request.getUsernameOrEmail());
         return ResponseEntity.ok(response);
     }
 
@@ -134,9 +134,9 @@ public class AuthController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Logout request for user ID: {}", userId);
+        log.debug("Logout request for user ID: {}", userId);
         authService.logout(userId);
-        log.info("User logged out successfully: {}", userId);
+        log.debug("User logged out successfully: {}", userId);
         return ResponseEntity.ok(new MessageResponse("Logged out successfully"));
     }
 
@@ -168,7 +168,7 @@ public class AuthController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Session verification request for user ID: {}", userId);
+        log.debug("Session verification request for user ID: {}", userId);
         com.authkey.storage.dto.response.UserResponse userResponse = userService.getUserResponseById(userId);
         return ResponseEntity.ok(userResponse);
     }
@@ -199,9 +199,9 @@ public class AuthController {
     public ResponseEntity<AuthResponse> refreshToken(
             @Valid @RequestBody RefreshTokenRequest request
     ) {
-        log.info("Token refresh request received");
+        log.debug("Token refresh request received");
         AuthResponse response = authService.refreshToken(request.getRefreshToken());
-        log.info("Token refreshed successfully");
+        log.debug("Token refreshed successfully");
         return ResponseEntity.ok(response);
     }
 
@@ -231,9 +231,9 @@ public class AuthController {
     public ResponseEntity<MessageResponse> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequest request
     ) {
-        log.info("Forgot password request for email: {}", request.getEmail());
+        log.debug("Forgot password request for email: {}", request.getEmail());
         authService.forgotPassword(request);
-        log.info("Password reset email sent to: {}", request.getEmail());
+        log.debug("Password reset email sent to: {}", request.getEmail());
         return ResponseEntity.ok(
                 new MessageResponse("Password reset instructions sent to your email")
         );
@@ -265,9 +265,9 @@ public class AuthController {
     public ResponseEntity<MessageResponse> resetPassword(
             @Valid @RequestBody ResetPasswordRequest request
     ) {
-        log.info("Password reset request received");
+        log.debug("Password reset request received");
         authService.resetPassword(request);
-        log.info("Password reset successfully");
+        log.debug("Password reset successfully");
         return ResponseEntity.ok(new MessageResponse("Password reset successfully"));
     }
 
@@ -298,9 +298,9 @@ public class AuthController {
             @Parameter(description = "Email verification token", required = true)
             @RequestParam("token") String token
     ) {
-        log.info("Email verification request received");
+        log.debug("Email verification request received");
         authService.verifyEmailToken(token);
-        log.info("Email verified successfully");
+        log.debug("Email verified successfully");
         return ResponseEntity.ok(new MessageResponse("Email verified successfully"));
     }
 
@@ -330,10 +330,10 @@ public class AuthController {
     public ResponseEntity<MessageResponse> resendVerification(
             @Valid @RequestBody ResendVerificationRequest request
     ) {
-        log.info("Resend verification request for email: {}", request.getEmail());
+        log.debug("Resend verification request for email: {}", request.getEmail());
         com.authkey.storage.entity.User user = userService.getUserByEmail(request.getEmail());
         userService.resendVerificationEmail(user.getId());
-        log.info("Verification email resent to: {}", request.getEmail());
+        log.debug("Verification email resent to: {}", request.getEmail());
         return ResponseEntity.ok(
                 new MessageResponse("Verification email sent successfully")
         );

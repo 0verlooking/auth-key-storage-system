@@ -21,21 +21,23 @@ const DashboardPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const loadAuthKeys = useCallback(async () => {
-    try {
-      if (folderId) {
-        await filterByFolder(folderId);
-      } else {
-        await fetchAuthKeys();
-      }
-    } catch (err) {
-      showError('Failed to load auth keys');
-    }
-  }, [folderId, filterByFolder, fetchAuthKeys, showError]);
-
+  // Load auth keys on mount and when folderId changes
   useEffect(() => {
-    loadAuthKeys();
-  }, [loadAuthKeys]);
+    const loadData = async () => {
+      try {
+        if (folderId) {
+          await filterByFolder(folderId);
+        } else {
+          await fetchAuthKeys();
+        }
+      } catch (err) {
+        showError('Failed to load auth keys');
+      }
+    };
+
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [folderId]); // Only depend on folderId
 
   const handleSearch = async (query) => {
     setSearchQuery(query);
@@ -46,7 +48,16 @@ const DashboardPage = () => {
         showError('Search failed');
       }
     } else {
-      loadAuthKeys();
+      // Reload all keys when search is cleared
+      try {
+        if (folderId) {
+          await filterByFolder(folderId);
+        } else {
+          await fetchAuthKeys();
+        }
+      } catch (err) {
+        showError('Failed to load auth keys');
+      }
     }
   };
 
@@ -58,8 +69,16 @@ const DashboardPage = () => {
     setDialogOpen(false);
   };
 
-  const handleKeySaved = () => {
-    loadAuthKeys();
+  const handleKeySaved = async () => {
+    try {
+      if (folderId) {
+        await filterByFolder(folderId);
+      } else {
+        await fetchAuthKeys();
+      }
+    } catch (err) {
+      showError('Failed to refresh auth keys');
+    }
   };
 
   return (
@@ -93,7 +112,20 @@ const DashboardPage = () => {
       {isLoading ? (
         <LoadingSpinner message="Loading keys..." />
       ) : (
-        <AuthKeyList keys={authKeys} onRefresh={loadAuthKeys} />
+        <AuthKeyList
+          keys={authKeys}
+          onRefresh={async () => {
+            try {
+              if (folderId) {
+                await filterByFolder(folderId);
+              } else {
+                await fetchAuthKeys();
+              }
+            } catch (err) {
+              showError('Failed to refresh auth keys');
+            }
+          }}
+        />
       )}
 
       {/* Create/Edit Dialog */}

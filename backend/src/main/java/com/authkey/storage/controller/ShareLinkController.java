@@ -80,10 +80,10 @@ public class ShareLinkController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Creating share link for auth key ID: {} by user ID: {}",
+        log.debug("Creating share link for auth key ID: {} by user ID: {}",
                 request.getAuthKeyId(), userId);
         ShareLinkResponse response = shareLinkService.createShareLink(userId, request);
-        log.info("Share link created successfully with token: {}", response.getShareToken());
+        log.debug("Share link created successfully with token: {}", response.getShareToken());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -128,9 +128,9 @@ public class ShareLinkController {
             @Parameter(description = "Access password (if required)")
             @RequestParam(required = false) String password
     ) {
-        log.info("Accessing share link with token: {}", token);
+        log.debug("Accessing share link with token: {}", token);
         ShareLinkResponse response = shareLinkService.accessShareLink(token, password);
-        log.info("Share link accessed successfully: {}", token);
+        log.debug("Share link accessed successfully: {}", token);
         return ResponseEntity.ok(response);
     }
 
@@ -163,9 +163,9 @@ public class ShareLinkController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Fetching share links for user ID: {}", userId);
+        log.debug("Fetching share links for user ID: {}", userId);
         List<ShareLinkResponse> response = shareLinkService.getUserShareLinks(userId);
-        log.info("Retrieved {} share links for user ID: {}", response.size(), userId);
+        log.debug("Retrieved {} share links for user ID: {}", response.size(), userId);
         return ResponseEntity.ok(response);
     }
 
@@ -209,7 +209,7 @@ public class ShareLinkController {
         Long userId = user.getId();
         log.warn("Revoking share link ID: {} by user ID: {}", id, userId);
         shareLinkService.revokeShareLink(userId, id);
-        log.info("Share link revoked successfully: {}", id);
+        log.debug("Share link revoked successfully: {}", id);
         return ResponseEntity.ok(new MessageResponse("Share link revoked successfully"));
     }
 }

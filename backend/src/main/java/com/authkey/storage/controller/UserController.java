@@ -65,7 +65,7 @@ public class UserController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Fetching profile for user ID: {}", userId);
+        log.debug("Fetching profile for user ID: {}", userId);
         UserResponse response = userService.getUserResponseById(userId);
         return ResponseEntity.ok(response);
     }
@@ -111,13 +111,13 @@ public class UserController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Updating profile for user ID: {}", userId);
+        log.debug("Updating profile for user ID: {}", userId);
         UserResponse response = userService.updateProfile(
                 userId,
                 request.getFirstName(),
                 request.getLastName()
         );
-        log.info("Profile updated successfully for user ID: {}", userId);
+        log.debug("Profile updated successfully for user ID: {}", userId);
         return ResponseEntity.ok(response);
     }
 
@@ -158,9 +158,9 @@ public class UserController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Password change request for user ID: {}", userId);
+        log.debug("Password change request for user ID: {}", userId);
         userService.changePassword(userId, request);
-        log.info("Password changed successfully for user ID: {}", userId);
+        log.debug("Password changed successfully for user ID: {}", userId);
         return ResponseEntity.ok(new MessageResponse("Password changed successfully"));
     }
 

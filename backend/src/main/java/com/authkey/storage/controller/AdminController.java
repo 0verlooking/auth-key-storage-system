@@ -44,7 +44,7 @@ public class AdminController {
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getStatistics(Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
-        log.info("Admin {} requesting system statistics", currentUser.getEmail());
+        log.debug("Admin {} requesting system statistics", currentUser.getEmail());
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalUsers", userRepository.count());
@@ -62,7 +62,7 @@ public class AdminController {
     @GetMapping("/users")
     public ResponseEntity<List<Map<String, Object>>> getAllUsers(Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
-        log.info("Admin {} requesting all users", currentUser.getEmail());
+        log.debug("Admin {} requesting all users", currentUser.getEmail());
 
         List<User> users = userRepository.findAll();
 
@@ -90,7 +90,7 @@ public class AdminController {
     @GetMapping("/auth-keys")
     public ResponseEntity<List<Map<String, Object>>> getAllAuthKeys(Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
-        log.info("Admin {} requesting all auth keys", currentUser.getEmail());
+        log.debug("Admin {} requesting all auth keys", currentUser.getEmail());
 
         var authKeys = authKeyRepository.findAll();
 
@@ -122,7 +122,7 @@ public class AdminController {
             @PathVariable Long userId
     ) {
         User currentUser = (User) authentication.getPrincipal();
-        log.info("Admin {} toggling status for user ID: {}", currentUser.getEmail(), userId);
+        log.debug("Admin {} toggling status for user ID: {}", currentUser.getEmail(), userId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -131,7 +131,7 @@ public class AdminController {
         userRepository.save(user);
 
         String action = user.getAccountLocked() ? "locked" : "unlocked";
-        log.info("User {} has been {}", user.getEmail(), action);
+        log.debug("User {} has been {}", user.getEmail(), action);
 
         return ResponseEntity.ok(new MessageResponse("User " + action + " successfully"));
     }
@@ -158,7 +158,7 @@ public class AdminController {
         user.softDelete();
         userRepository.save(user);
 
-        log.info("User {} has been soft deleted", user.getEmail());
+        log.debug("User {} has been soft deleted", user.getEmail());
         return ResponseEntity.ok(new MessageResponse("User deleted successfully"));
     }
 }

@@ -76,9 +76,9 @@ public class FolderController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Creating folder for user ID: {}", userId);
+        log.debug("Creating folder for user ID: {}", userId);
         FolderResponse response = folderService.createFolder(userId, request);
-        log.info("Folder created successfully with ID: {}", response.getId());
+        log.debug("Folder created successfully with ID: {}", response.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -110,9 +110,9 @@ public class FolderController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Fetching all folders for user ID: {}", userId);
+        log.debug("Fetching all folders for user ID: {}", userId);
         List<FolderResponse> response = folderService.getAllFolders(userId);
-        log.info("Retrieved {} folders for user ID: {}", response.size(), userId);
+        log.debug("Retrieved {} folders for user ID: {}", response.size(), userId);
         return ResponseEntity.ok(response);
     }
 
@@ -144,9 +144,9 @@ public class FolderController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Fetching root folders for user ID: {}", userId);
+        log.debug("Fetching root folders for user ID: {}", userId);
         List<FolderResponse> response = folderService.getRootFolders(userId);
-        log.info("Retrieved {} root folders for user ID: {}", response.size(), userId);
+        log.debug("Retrieved {} root folders for user ID: {}", response.size(), userId);
         return ResponseEntity.ok(response);
     }
 
@@ -187,7 +187,7 @@ public class FolderController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Fetching folder ID: {} for user ID: {}", id, userId);
+        log.debug("Fetching folder ID: {} for user ID: {}", id, userId);
         FolderResponse response = folderService.getFolderById(userId, id);
         return ResponseEntity.ok(response);
     }
@@ -236,9 +236,9 @@ public class FolderController {
     ) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
-        log.info("Updating folder ID: {} for user ID: {}", id, userId);
+        log.debug("Updating folder ID: {} for user ID: {}", id, userId);
         FolderResponse response = folderService.updateFolder(userId, id, request);
-        log.info("Folder updated successfully: {}", id);
+        log.debug("Folder updated successfully: {}", id);
         return ResponseEntity.ok(response);
     }
 
@@ -281,7 +281,7 @@ public class FolderController {
         Long userId = user.getId();
         log.warn("Deleting folder ID: {} for user ID: {}", id, userId);
         folderService.deleteFolder(userId, id);
-        log.info("Folder deleted successfully: {}", id);
+        log.debug("Folder deleted successfully: {}", id);
         return ResponseEntity.ok(new MessageResponse("Folder deleted successfully"));
     }
 }

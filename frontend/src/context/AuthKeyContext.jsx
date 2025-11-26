@@ -71,9 +71,7 @@ export const AuthKeyProvider = ({ children }) => {
     try {
       const updatedKey = await authKeyService.updateAuthKey(id, keyData);
       setAuthKeys((prev) => prev.map((key) => (key.id === id ? updatedKey : key)));
-      if (selectedKey?.id === id) {
-        setSelectedKey(updatedKey);
-      }
+      setSelectedKey((prev) => (prev?.id === id ? updatedKey : prev));
       return updatedKey;
     } catch (err) {
       setError(err.message);
@@ -81,7 +79,7 @@ export const AuthKeyProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedKey]);
+  }, []);
 
   // Delete auth key
   const deleteAuthKey = useCallback(async (id) => {
@@ -90,16 +88,14 @@ export const AuthKeyProvider = ({ children }) => {
     try {
       await authKeyService.deleteAuthKey(id);
       setAuthKeys((prev) => prev.filter((key) => key.id !== id));
-      if (selectedKey?.id === id) {
-        setSelectedKey(null);
-      }
+      setSelectedKey((prev) => (prev?.id === id ? null : prev));
     } catch (err) {
       setError(err.message);
       throw err;
     } finally {
       setIsLoading(false);
     }
-  }, [selectedKey]);
+  }, []);
 
   // Decrypt auth key
   const decryptAuthKey = useCallback(async (encryptedKey) => {
