@@ -19,8 +19,10 @@
 # Не ігноруємо Dockerfile, docker-compose.yml, .dockerignore
 # Але ігноруємо volumes та temporary files
 backups/
-*.sql
 *.sql.gz
+# Ignore SQL backups but keep schema and test data
+/backend/backups/*.sql
+!backend/src/main/resources/*.sql
 
 # ============================================================================
 # Backend (Java/Maven)
