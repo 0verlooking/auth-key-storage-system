@@ -37,18 +37,20 @@ export const AuthProvider = ({ children }) => {
 
   // Session timeout management
   const startSessionTimeout = useCallback(() => {
-    // Clear existing timeout
-    if (sessionTimeout) {
-      clearTimeout(sessionTimeout);
-    }
+    // Clear existing timeout using functional setState
+    setSessionTimeout((prevTimeout) => {
+      if (prevTimeout) {
+        clearTimeout(prevTimeout);
+      }
 
-    // Set new timeout
-    const timeout = setTimeout(() => {
-      handleSessionExpired();
-    }, SESSION_TIMEOUT);
+      // Set new timeout
+      const timeout = setTimeout(() => {
+        handleSessionExpired();
+      }, SESSION_TIMEOUT);
 
-    setSessionTimeout(timeout);
-  }, [sessionTimeout]);
+      return timeout;
+    });
+  }, []); // No dependencies needed with functional setState
 
   const handleSessionExpired = async () => {
     console.log('Session expired');

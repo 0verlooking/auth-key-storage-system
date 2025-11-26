@@ -49,7 +49,8 @@ const AuthKeyDetails = ({ open, authKey, onClose, onUpdated }) => {
     if (open && authKey) {
       loadDecryptedKey();
     }
-  }, [open, authKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, authKey?.id]); // Only depend on authKey.id, not the whole object
 
   const loadDecryptedKey = async () => {
     setIsLoading(true);
