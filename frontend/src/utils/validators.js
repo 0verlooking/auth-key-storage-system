@@ -42,7 +42,7 @@ export const authKeySchema = Yup.object().shape({
     .max(255, 'Name must be less than 255 characters'),
   type: Yup.string()
     .required(VALIDATION_MESSAGES.REQUIRED)
-    .oneOf(['password', 'api_key', 'token', 'ssh_key', 'certificate', 'other']),
+    .oneOf(['PASSWORD', 'API_KEY', 'TOKEN', 'SSH_KEY', 'PRIVATE_KEY', 'CERTIFICATE', 'TWO_FA_SECRET', 'RECOVERY_CODE', 'OTHER']),
   value: Yup.string()
     .required('Value is required'),
   username: Yup.string()

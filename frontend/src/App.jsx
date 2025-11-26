@@ -20,6 +20,7 @@ import TagsPage from '@pages/TagsPage';
 import ProfilePage from '@pages/ProfilePage';
 import SettingsPage from '@pages/SettingsPage';
 import AuditLogsPage from '@pages/AuditLogsPage';
+import AdminPage from '@pages/AdminPage';
 import NotFoundPage from '@pages/NotFoundPage';
 
 // Components
@@ -55,6 +56,7 @@ function App() {
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/audit-logs" element={<AuditLogsPage />} />
+                  <Route path="/admin" element={<AdminPage />} />
                 </Route>
               </Route>
 

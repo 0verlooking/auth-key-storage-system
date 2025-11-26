@@ -32,6 +32,7 @@ import {
   Brightness4,
   Brightness7,
   VpnKey,
+  AdminPanelSettings,
 } from '@mui/icons-material';
 import { useAuth } from '@hooks/useAuth';
 import { ROUTES, APP_NAME } from '@config/constants';
@@ -85,6 +86,10 @@ const MainLayout = ({ mode, toggleTheme }) => {
     { text: 'Profile', icon: <Person />, path: ROUTES.PROFILE },
     { text: 'Settings', icon: <Settings />, path: ROUTES.SETTINGS },
     { text: 'Audit Logs', icon: <History />, path: ROUTES.AUDIT_LOGS },
+    ...(user?.role === 'ADMIN' ? [
+      { divider: true },
+      { text: 'Admin Panel', icon: <AdminPanelSettings />, path: '/admin' },
+    ] : []),
   ];
 
   const drawer = (
