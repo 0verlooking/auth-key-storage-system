@@ -1,151 +1,40 @@
-# 🚀 Auth Key Storage System - Quick Start Guide
+# 🚀 Auth Key Storage System - Quick Start
 
-## ⚠️ ВАЖЛИВО: Якщо у вас проблеми з запуском
+## ⚡ Швидкий запуск (найпростіший спосіб)
 
-### Проблема: Запускається інший проект (BiometricStressAnalysisApplication)
-
-**Причина:** У вас запущені Docker контейнери з іншого проекту або ви в неправильній директорії.
-
-**Рішення:**
-
-#### Windows:
+### Windows:
 ```cmd
-cd C:\Users\user\IdeaProjects\auth-key-storage-system
-rebuild.bat
+start.bat
 ```
 
-#### Linux/Mac:
+### Linux/Mac:
 ```bash
-cd /path/to/auth-key-storage-system
-chmod +x rebuild.sh
-./rebuild.sh
+./start.sh
 ```
+
+**Скрипт автоматично:**
+1. ✅ Запустить Docker контейнери
+2. ✅ Дочекається поки сервіси запустяться
+3. ✅ Створить схему бази даних
+4. ✅ Завантажить тестові дані
+5. ✅ Покаже інформацію для входу
 
 ---
 
-## 📋 Автоматичний скрипт (rebuild.bat / rebuild.sh)
+## 🌐 Після запуску
 
-Скрипт автоматично:
-1. ✅ Зупиняє **ВСІ** Docker контейнери
-2. ✅ Видаляє **ВСІ** Docker контейнери
-3. ✅ Видаляє volumes проекту (база даних буде очищена!)
-4. ✅ Видаляє мережу проекту
-5. ✅ Очищає Docker system
-6. ✅ Перебудовує і запускає контейнери
+Відкрийте браузер: **http://localhost**
 
----
+### Тестові облікові дані:
 
-## 🔧 Ручний запуск (якщо скрипт не працює)
-
-### 1. Переконайтесь що ви в правильній директорії:
-
-```bash
-# Windows
-cd C:\Users\user\IdeaProjects\auth-key-storage-system
-
-# Linux/Mac
-cd /path/to/auth-key-storage-system
-
-# Перевірте що ви в правильному місці:
-dir docker-compose.yml   # Windows
-ls docker-compose.yml    # Linux/Mac
-```
-
-### 2. Зупиніть ВСІ контейнери:
-
-```bash
-# Зупинити всі контейнери
-docker stop $(docker ps -aq)
-
-# Видалити всі контейнери
-docker rm -f $(docker ps -aq)
-```
-
-### 3. Видаліть volumes (база даних буде очищена):
-
-```bash
-docker volume rm auth-key-storage-postgres-data
-docker volume rm auth-key-storage-redis-data
-docker volume rm auth-key-storage-pgadmin-data
-```
-
-### 4. Очистіть Docker:
-
-```bash
-docker system prune -f
-```
-
-### 5. Перебудуйте проект:
-
-```bash
-# Windows
-docker-compose down -v
-docker-compose up -d --build
-
-# Linux/Mac
-docker compose down -v
-docker compose up -d --build
-```
-
-### 6. Перевірте статус:
-
-```bash
-# Windows
-docker-compose ps
-docker-compose logs -f backend
-
-# Linux/Mac
-docker compose ps
-docker compose logs -f backend
-```
-
----
-
-## ✅ Як перевірити що запущено ПРАВИЛЬНИЙ проект
-
-### Перевірте логи backend:
-
-```bash
-docker compose logs backend | head -20
-```
-
-**✅ ПРАВИЛЬНО** - має бути:
-```
-Starting AuthKeyStorageApplication
-Auth Key Storage System
-```
-
-**❌ НЕПРАВИЛЬНО** - якщо бачите:
-```
-Starting BiometricStressAnalysisApplication
-```
-
-Якщо бачите неправильне ім'я - ви запустили **інший проект**! Поверніться до кроку 1.
-
----
-
-## 🌐 URL додатку після запуску
-
-| Сервіс | URL |
-|--------|-----|
-| **Frontend** | http://localhost |
-| **Backend API** | http://localhost:8080 |
-| **Swagger UI** | http://localhost:8080/api/v1/swagger-ui.html |
-| **PostgreSQL** | localhost:5432 |
-| **Redis** | localhost:6379 |
-
----
-
-## 🔐 Тестові облікові дані
-
-### Звичайний користувач:
+**Звичайний користувач:**
 ```
 Email: test@example.com
 Password: Test123!
 Master Password: Test123!
 ```
 
-### Адміністратор:
+**Адміністратор:**
 ```
 Email: admin@example.com
 Password: Admin123!
@@ -154,80 +43,102 @@ Master Password: Admin123!
 
 ---
 
-## 📦 Ініціалізація бази даних
+## 📦 Що включено в тестові дані
 
-Після першого запуску база даних буде порожня. Щоб створити схему і завантажити тестові дані:
+### Для test@example.com (10 ключів):
+- GitHub Account, VPN, Jira (Work folder)
+- Gmail, Amazon (Personal folder)
+- AWS API, OpenAI, GitHub Token, SSH Key (Development folder)
+- Google Authenticator backup codes
 
-### Windows:
-```cmd
-init-database.bat
-```
+### Для admin@example.com (4 ключі):
+- System Admin Panel
+- Database Root
+- SSL Certificate
+- Monitoring API
 
-### Linux/Mac:
-```bash
-chmod +x init-database.sh
-./init-database.sh
-```
-
-**Цей скрипт автоматично:**
-1. ✅ Перевіряє чи існують таблиці в базі даних
-2. ✅ Створює схему бази даних (якщо таблиць немає)
-3. ✅ Завантажує тестові дані
-
-### Що буде завантажено:
-- ✅ **10 auth keys** для test@example.com
-  - GitHub Account, VPN, Jira (Work folder)
-  - Gmail, Amazon (Personal folder)
-  - AWS API, OpenAI, GitHub Token, SSH Key (Development folder)
-  - Google Authenticator backup codes
-- ✅ **4 auth keys** для admin@example.com
-  - System Admin Panel, Database Root, SSL Certificate, Monitoring API
-- ✅ **3 папки**: Work, Personal, Development
-- ✅ **3 теги**: Important, Shared, Development
+### Також:
+- ✅ 3 папки: Work, Personal, Development
+- ✅ 3 теги: Important, Shared, Development
 - ✅ Audit log записи
 
 ---
 
 ## 🛡️ Адмін Панель
 
-Адміністратор має доступ до спеціальної панелі управління:
-
 1. Логін як **admin@example.com**
 2. У sidebar з'явиться пункт "Admin Panel"
-3. Відкриється панель з вкладками:
+3. Доступні вкладки:
    - **Statistics** - загальна статистика системи
-   - **Users** - список всіх користувачів (блокування/розблокування)
-   - **Auth Keys** - метадані всіх ключів (без розшифрованих значень!)
+   - **Users** - список всіх користувачів
+   - **Auth Keys** - метадані всіх ключів (без паролів!)
    - **System Info** - інформація про систему
-
-### Можливості адміна:
-- ✅ Перегляд всіх користувачів
-- ✅ Блокування/розблокування облікових записів
-- ✅ Перегляд статистики (кількість ключів, папок, тегів)
-- ✅ Перегляд метаданих auth keys (без паролів!)
 
 ---
 
-## 📊 Перевірка чи все працює
+## 🔧 Ручна установка (якщо автоматичний скрипт не спрацював)
 
-### 1. Відкрийте http://localhost у браузері
+### 1. Запустіть контейнери:
 
-### 2. Увійдіть з тестовими даними
-
-### 3. Має відкритися Dashboard БЕЗ помилок
-
-### 4. Спробуйте створити Auth Key:
-   - Натисніть "Add Key"
-   - Заповніть форму
-   - Збережіть
-
-### 5. Перевірте логи - НЕ має бути спаму:
 ```bash
-docker compose logs -f backend
+# Windows
+docker-compose up -d
+
+# Linux/Mac
+docker compose up -d
 ```
 
-**✅ Правильно:** Тільки важливі повідомлення
-**❌ Неправильно:** Сотні рядків "Fetching auth keys..."
+### 2. Почекайте 30 секунд поки все запуститься
+
+### 3. Ініціалізуйте базу даних:
+
+```bash
+# Windows
+init-database.bat
+
+# Linux/Mac
+./init-database.sh
+```
+
+### 4. Перевірте статус:
+
+```bash
+# Windows
+docker-compose ps
+
+# Linux/Mac
+docker compose ps
+```
+
+---
+
+## 🔄 Повна перебудова (якщо щось не працює)
+
+### Windows:
+```cmd
+rebuild.bat
+```
+
+### Linux/Mac:
+```bash
+./rebuild.sh
+```
+
+Це видалить **ВСЕ** (контейнери, volumes, images) і збере проект з нуля.
+
+**⚠️ УВАГА:** Всі дані в базі даних будуть втрачені!
+
+---
+
+## 🌐 URL сервісів
+
+| Сервіс | URL |
+|--------|-----|
+| **Frontend** | http://localhost |
+| **Backend API** | http://localhost:8080 |
+| **Swagger UI** | http://localhost:8080/swagger-ui.html |
+| **PostgreSQL** | localhost:5432 |
+| **Redis** | localhost:6379 |
 
 ---
 
@@ -258,73 +169,96 @@ kill -9 <PID>                  # Linux/Mac
 ```bash
 # Видаліть volumes і перезапустіть
 docker compose down -v
-docker compose up -d --build
+docker compose up -d
 ```
 
-### Проблема: CORS errors
+### Проблема: Frontend не завантажується
 
-Перевірте що CORS налаштовано правильно:
 ```bash
-# Має бути: http://localhost,http://localhost:3000,http://localhost:80
-docker compose exec backend env | grep CORS
+# Перебудуйте frontend
+docker compose stop frontend
+docker compose rm -f frontend
+docker compose up -d --build frontend
 ```
 
 ---
 
 ## 📝 Корисні команди
 
+### Переглянути логи:
 ```bash
-# Переглянути всі контейнери
-docker ps -a
-
-# Переглянути логи
 docker compose logs -f backend
 docker compose logs -f frontend
+```
 
-# Перезапустити окремий сервіс
+### Перезапустити сервіс:
+```bash
 docker compose restart backend
+docker compose restart frontend
+```
 
-# Зупинити все
+### Зупинити все:
+```bash
 docker compose down
+```
 
-# Зупинити і видалити volumes
+### Зупинити і видалити volumes:
+```bash
 docker compose down -v
+```
 
-# Перебудувати без кешу
+### Перебудувати без кешу:
+```bash
 docker compose build --no-cache
 docker compose up -d
 ```
 
 ---
 
-## 🎯 Очікувана поведінка
+## ✅ Очікувана поведінка
 
-### ✅ Що має працювати:
+### Що має працювати:
+1. ✅ Login - вхід з тестовими даними
+2. ✅ Dashboard - відображається без постійних запитів
+3. ✅ Create Auth Key - можна створити новий ключ
+4. ✅ Folders - управління папками (CRUD)
+5. ✅ Tags - управління тегами (CRUD) з кольорами
+6. ✅ Settings - зміна теми, пароля
+7. ✅ Admin Panel - для адміністратора
 
-1. **Login** - вхід з тестовими даними
-2. **Dashboard** - відображається без постійних запитів
-3. **Create Auth Key** - можна створити новий ключ
-4. **Folders** - управління папками (CRUD)
-5. **Tags** - управління тегами (CRUD) з кольорами
-6. **Settings** - зміна теми, пароля
-7. **Логи backend** - чисті, без спаму
-
-### ❌ Чого НЕ має бути:
-
+### Чого НЕ має бути:
 1. ❌ Постійні запити до API кожну мілісекунду
 2. ❌ Логи забиті SQL запитами
 3. ❌ Помилки 500/401/403
 4. ❌ CORS errors
 5. ❌ База даних видаляється при перезапуску
+6. ❌ Нескінченне "Loading keys..."
 
 ---
 
-## 💡 Поради
+## 🎯 Архітектура
 
-1. **Завжди перевіряйте** що ви в правильній директорії перед запуском
-2. **Використовуйте rebuild скрипт** для чистого старту
-3. **Перевіряйте логи** після запуску щоб переконатись що все ОК
-4. **Не змінюйте** docker-compose.yml без необхідності
+### Backend:
+- **Framework:** Spring Boot 3.2
+- **Database:** PostgreSQL 15
+- **Cache:** Redis 7
+- **Security:** Spring Security + JWT
+- **API Docs:** Swagger/OpenAPI
+
+### Frontend:
+- **Framework:** React 18
+- **UI:** Material-UI (MUI)
+- **State:** React Context API
+- **Router:** React Router v6
+- **Encryption:** Web Crypto API (AES-256-GCM)
+
+### Security:
+- ✅ Zero-knowledge encryption (client-side)
+- ✅ JWT authentication
+- ✅ Role-based access control (USER, ADMIN)
+- ✅ Audit logging
+- ✅ Password strength validation
+- ✅ 2FA ready (infrastructure)
 
 ---
 
@@ -339,4 +273,4 @@ docker compose up -d
 ---
 
 **Версія:** 1.0.0
-**Останнє оновлення:** 2025-11-25
+**Останнє оновлення:** 2025-11-26
