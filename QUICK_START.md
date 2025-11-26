@@ -138,11 +138,68 @@ Starting BiometricStressAnalysisApplication
 
 ## 🔐 Тестові облікові дані
 
+### Звичайний користувач:
 ```
 Email: test@example.com
 Password: Test123!
 Master Password: Test123!
 ```
+
+### Адміністратор:
+```
+Email: admin@example.com
+Password: Admin123!
+Master Password: Admin123!
+```
+
+---
+
+## 📦 Завантаження тестових даних
+
+Після першого запуску база даних буде порожня. Щоб додати тестові ключі та папки:
+
+### Windows:
+```cmd
+load-test-data.bat
+```
+
+### Linux/Mac:
+```bash
+chmod +x load-test-data.sh
+./load-test-data.sh
+```
+
+### Що буде завантажено:
+- ✅ **10 auth keys** для test@example.com
+  - GitHub Account, VPN, Jira (Work folder)
+  - Gmail, Amazon (Personal folder)
+  - AWS API, OpenAI, GitHub Token, SSH Key (Development folder)
+  - Google Authenticator backup codes
+- ✅ **4 auth keys** для admin@example.com
+  - System Admin Panel, Database Root, SSL Certificate, Monitoring API
+- ✅ **3 папки**: Work, Personal, Development
+- ✅ **3 теги**: Important, Shared, Development
+- ✅ Audit log записи
+
+---
+
+## 🛡️ Адмін Панель
+
+Адміністратор має доступ до спеціальної панелі управління:
+
+1. Логін як **admin@example.com**
+2. У sidebar з'явиться пункт "Admin Panel"
+3. Відкриється панель з вкладками:
+   - **Statistics** - загальна статистика системи
+   - **Users** - список всіх користувачів (блокування/розблокування)
+   - **Auth Keys** - метадані всіх ключів (без розшифрованих значень!)
+   - **System Info** - інформація про систему
+
+### Можливості адміна:
+- ✅ Перегляд всіх користувачів
+- ✅ Блокування/розблокування облікових записів
+- ✅ Перегляд статистики (кількість ключів, папок, тегів)
+- ✅ Перегляд метаданих auth keys (без паролів!)
 
 ---
 
