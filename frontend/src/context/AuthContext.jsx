@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { authService } from '@services/authService';
 import { storageService } from '@services/storageService';
@@ -59,11 +59,9 @@ export const AuthProvider = ({ children }) => {
 
   // Update last activity
   const updateActivity = useCallback(() => {
-    if (isAuthenticated) {
-      storageService.updateLastActivity();
-      startSessionTimeout();
-    }
-  }, [isAuthenticated, startSessionTimeout]);
+    storageService.updateLastActivity();
+    startSessionTimeout();
+  }, [startSessionTimeout]);
 
   // Listen for user activity
   useEffect(() => {
@@ -142,17 +140,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const value = {
-    user,
-    isAuthenticated,
-    isLoading,
-    register,
-    login,
-    logout,
-    updateUser,
-    verifyMasterPassword,
-    updateActivity,
-  };
+  const value = useMemo(
+    () => ({
+      user,
+      isAuthenticated,
+      isLoading,
+      register,
+      login,
+      logout,
+      updateUser,
+      verifyMasterPassword,
+      updateActivity,
+    }),
+    [user, isAuthenticated, isLoading, register, login, logout, updateUser, verifyMasterPassword, updateActivity]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

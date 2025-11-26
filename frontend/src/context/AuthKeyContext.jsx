@@ -1,4 +1,4 @@
-import { createContext, useState, useCallback } from 'react';
+import { createContext, useState, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { authKeyService } from '@services/authKeyService';
 
@@ -183,26 +183,47 @@ export const AuthKeyProvider = ({ children }) => {
     }
   }, []);
 
-  const value = {
-    authKeys,
-    selectedKey,
-    isLoading,
-    error,
-    filters,
-    fetchAuthKeys,
-    fetchAuthKey,
-    createAuthKey,
-    updateAuthKey,
-    deleteAuthKey,
-    decryptAuthKey,
-    searchAuthKeys,
-    filterByFolder,
-    filterByTag,
-    updateFilters,
-    clearFilters,
-    copyToClipboard,
-    setSelectedKey,
-  };
+  const value = useMemo(
+    () => ({
+      authKeys,
+      selectedKey,
+      isLoading,
+      error,
+      filters,
+      fetchAuthKeys,
+      fetchAuthKey,
+      createAuthKey,
+      updateAuthKey,
+      deleteAuthKey,
+      decryptAuthKey,
+      searchAuthKeys,
+      filterByFolder,
+      filterByTag,
+      updateFilters,
+      clearFilters,
+      copyToClipboard,
+      setSelectedKey,
+    }),
+    [
+      authKeys,
+      selectedKey,
+      isLoading,
+      error,
+      filters,
+      fetchAuthKeys,
+      fetchAuthKey,
+      createAuthKey,
+      updateAuthKey,
+      deleteAuthKey,
+      decryptAuthKey,
+      searchAuthKeys,
+      filterByFolder,
+      filterByTag,
+      updateFilters,
+      clearFilters,
+      copyToClipboard,
+    ]
+  );
 
   return <AuthKeyContext.Provider value={value}>{children}</AuthKeyContext.Provider>;
 };
