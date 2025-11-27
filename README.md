@@ -905,9 +905,20 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
 | Method | Endpoint | Опис |
 |--------|----------|------|
 | GET | `/api/users/profile` | Отримати профіль |
-| PUT | `/api/users/profile` | Оновити профіль |
-| PUT | `/api/users/password` | Змінити пароль |
-| GET | `/api/users/stats` | Статистика користувача |
+| PUT | `/api/users/profile` | Оновити профіль (firstName, lastName) |
+| PUT | `/api/users/profile/password` | Змінити пароль |
+| GET | `/api/users/profile/stats` | Статистика користувача (ключі, папки, теги) |
+
+### Admin Panel (ADMIN only)
+
+| Method | Endpoint | Опис |
+|--------|----------|------|
+| GET | `/api/admin/stats` | Системна статистика |
+| GET | `/api/admin/users` | Список всіх користувачів |
+| GET | `/api/admin/auth-keys` | Список метаданих всіх ключів |
+| PATCH | `/api/admin/users/{id}/toggle-status` | Активувати/деактивувати користувача |
+| PATCH | `/api/admin/users/{id}/role` | Змінити роль користувача (USER ↔ ADMIN) |
+| DELETE | `/api/admin/users/{id}` | Видалити користувача |
 
 ### API Documentation
 
